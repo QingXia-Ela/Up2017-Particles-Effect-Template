@@ -254,6 +254,8 @@ class ParticleSystem {
     // !使用断言
     const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
     const arr = sourceModel.array
+    // 停止当前所有动画
+    Tween.removeAll()
     for (let i = 0; i < this.maxParticlesCount; i++) {
       const tween = new Tween.Tween({ x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] })
       const cur = i % targetModel.count
