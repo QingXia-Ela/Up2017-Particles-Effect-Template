@@ -10,12 +10,15 @@ import { FocusShader } from 'three/examples/jsm/shaders/FocusShader'
 
 import Tween from '@tweenjs/tween.js'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
+import { throttle } from 'lodash'
 
 import g from '@/assets/images/gradient.png'
 
 const _MODEL_PATH_ = [
-  new URL('models/examples/AngularSphere.obj', import.meta.url).href,
-  new URL('models/examples/cone.obj', import.meta.url).href
+  // new URL('models/examples/AngularSphere.obj', import.meta.url).href,
+  new URL('models/examples/cube.obj', import.meta.url).href,
+  new URL('models/examples/ball.obj', import.meta.url).href
+  // new URL('models/examples/cone.obj', import.meta.url).href
   // require("../../models/examples/cube.obj"),
   // require("../../models/examples/AngularSphere.obj"),
 ]
@@ -42,6 +45,8 @@ class ParticleSystem {
   private composer?: EffectComposer
   private PointMaterial?: THREE.PointsMaterial
   private AnimateEffectParticle?: THREE_POINT
+  private mouseV: number
+  private mouseK: number
 
   // 新编写的物体添加核心
   constructor(CanvasWrapper: HTMLDivElement) {
@@ -70,7 +75,8 @@ class ParticleSystem {
       this.camera!,
       this.renderer!.domElement
     )
-    this.orbitControls.autoRotate = true
+    this.mouseK = 0
+    this.mouseV = 0
     // 循环更新渲染场景
     this.update()
   }
@@ -81,8 +87,8 @@ class ParticleSystem {
     // 在场景中添加雾的效果，参数分别代表‘雾的颜色’、‘开始雾化的视线距离’、刚好雾化至看不见的视线距离’
     this.scene.fog = new THREE.FogExp2(328972, 5e-4)
     // 创建相机
-    const aspectRatio = this.WIDTH / this.HEIGHT
     const fieldOfView = 100
+    const aspectRatio = this.WIDTH / this.HEIGHT
     const nearPlane = 1
     const farPlane = 5e4
 
@@ -94,12 +100,11 @@ class ParticleSystem {
     )
 
     // 设置相机的位置
-    this.camera.position.x = 300
-    this.camera.position.z = 0
-    this.camera.position.y = 0
+    this.camera.position.set(0, 0, 1e3)
+    this.camera.lookAt(new THREE.Vector3(0, 0, 0))
 
     // 坐标轴辅助器
-    const axesHelper = new THREE.AxesHelper(50)
+    const axesHelper = new THREE.AxesHelper(500)
     this.scene.add(axesHelper)
     // 创建渲染器
     this.renderer = new THREE.WebGLRenderer({
@@ -161,7 +166,7 @@ class ParticleSystem {
   createEffect() {
     this.composer = new EffectComposer(this.renderer!)
     const renderPass = new RenderPass(this.scene!, this.camera!)
-    const bloomPass = new BloomPass(0.6)
+    const bloomPass = new BloomPass(0.75)
     const filmPass = new FilmPass(0.5, 0.5, 1500, 0)
     const shaderPass = new ShaderPass(FocusShader)
     shaderPass.uniforms.screenWidth.value = window.innerWidth
@@ -179,13 +184,16 @@ class ParticleSystem {
     const loader = new OBJLoader()
     this.PointMaterial = new THREE.PointsMaterial({
       // 粒子大小
-      size: 1.5,
+      size: 5,
       // false:粒子尺寸相同 ;true：取决于摄像头远近
       sizeAttenuation: true,
       transparent: true,
       opacity: 1,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
       map: new THREE.TextureLoader().load(g)
     })
+    const scaleNum = 500
     // 读取预置列表
     for (const i of _MODEL_PATH_) {
       const finalGeometry = new THREE.BufferGeometry()
@@ -197,7 +205,7 @@ class ParticleSystem {
           finalVertices = new Float32Array([...finalVertices, ...arr])
         }
         finalGeometry.setAttribute('position', new THREE.BufferAttribute(finalVertices, 3))
-        finalGeometry.scale(200, 200, 200)
+        finalGeometry.scale(scaleNum, scaleNum, scaleNum)
         const FinalPoints = new THREE.Points(finalGeometry, this.PointMaterial)
         this.modelList.push(FinalPoints)
         this._LOAD_COUNT_++
@@ -211,6 +219,7 @@ class ParticleSystem {
   _finishLoadModal() {
     // 获得最大的粒子数量
     let maxParticlesCount = 0
+
     this.modelList.forEach(
       (val) => {
         maxParticlesCount = Math.max(maxParticlesCount, val.geometry.attributes.position.count)
@@ -219,16 +228,20 @@ class ParticleSystem {
     this.maxParticlesCount = maxParticlesCount
     // 基于最大点构建一个动画载体
     const vertices = []
+    const randMaxLength = 1500
     for (let i = 0; i < maxParticlesCount; i++) {
-      const x = getRangeRandom(-1 * 400, 400)
-      const y = getRangeRandom(-1 * 400, 400)
-      const z = getRangeRandom(-2 * 400, 400)
+      const x = getRangeRandom(-1 * randMaxLength, randMaxLength)
+      const y = getRangeRandom(-1 * randMaxLength, randMaxLength)
+      const z = getRangeRandom(-1 * randMaxLength, randMaxLength)
       vertices.push(x, y, z)
     }
     const AnimateEffectGeometry = new THREE.BufferGeometry()
     AnimateEffectGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3, false))
     this.AnimateEffectParticle = new THREE.Points(AnimateEffectGeometry, this.PointMaterial)
     this.scene?.add(this.AnimateEffectParticle)
+
+    // 开始监听鼠标移动事件
+    window.addEventListener('mousemove', this.rotateScene)
   }
 
   changeModel() {
@@ -244,7 +257,7 @@ class ParticleSystem {
     for (let i = 0; i < this.maxParticlesCount; i++) {
       const tween = new Tween.Tween({ x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] })
       const cur = i % targetModel.count
-      tween.stop().to(
+      tween.to(
         {
           x: targetModel.array[cur * 3],
           y: targetModel.array[cur * 3 + 1],
@@ -258,18 +271,31 @@ class ParticleSystem {
     }
   }
 
+  // 监听鼠标移动旋转场景
+  rotateScene = throttle((e: MouseEvent) => {
+    this.mouseV = 3e-4 * (e.clientX - this.WIDTH / 2)
+    this.mouseK = 1e-4 * (e.clientY - this.HEIGHT / 2)
+  }, 100)
+
+  _updateRotation() {
+    if (this.scene != null) {
+      this.scene.rotation.y += (this.mouseV - this.scene.rotation.y) / 50
+      this.scene.rotation.x += (this.mouseK - this.scene.rotation.x) / 50
+    }
+  }
+
   // 循环更新渲染
   update() {
     // 动画插件
     Tween.update()
     // 性能监测插件
     this.stats?.update()
-    this.orbitControls?.update()
+    // 场景旋转检测
+    this._updateRotation()
     // 渲染器执行渲染
     // this.renderer.render(this.scene, this.camera);
     // 效果器执行渲染，如果不需要效果器请使用上方的渲染模式
     this.composer!.render()
-    // this.scene.rotation.y -= 0.01;
     // 循环调用
     requestAnimationFrame(() => {
       this.update()
