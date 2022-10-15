@@ -1,13 +1,10 @@
-import React, { useState } from 'react'
+import React from 'react'
 import './App.scss'
+import Layout from './layouts'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="App">
-      test
-    </div>
+    <Layout />
   )
 }
 
