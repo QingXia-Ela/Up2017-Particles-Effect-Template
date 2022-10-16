@@ -33,7 +33,7 @@ type THREE_POINT = THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
 
 class ParticleSystem {
   private readonly CanvasWrapper: HTMLDivElement
-  private readonly modelList: THREE_POINT[]
+  private readonly modelList: Map<string, THREE_POINT>
   private _LOAD_COUNT_: number
   private ModelPointer: number
   private maxParticlesCount: number
@@ -47,6 +47,8 @@ class ParticleSystem {
   private composer?: EffectComposer
   private PointMaterial?: THREE.PointsMaterial
   private AnimateEffectParticle?: THREE_POINT
+  private AnimateDuration: number
+  private AnimateDelayDuration: number
   private mouseV: number
   private mouseK: number
   /** 模型数组 */
@@ -59,15 +61,21 @@ class ParticleSystem {
     CanvasWrapper: HTMLDivElement
     Models: ParticleModelProps[]
     addons?: any[]
+    AnimateDuration?: number
+    AnimateDelayDuration?: number
   }) {
+    const { AnimateDuration, AnimateDelayDuration } = options
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = options.addons ? options.addons : []
     this.Models = [...options.Models]
+    this.AnimateDuration = AnimateDuration ? AnimateDuration : 1500
+    this.AnimateDelayDuration = AnimateDelayDuration ? AnimateDelayDuration : 1500
+
     /* 宽高 */
     this.HEIGHT = window.innerHeight
     this.WIDTH = window.innerWidth
     /** 模型列表  */
-    this.modelList = []
+    this.modelList = new Map()
     /** 已加载的模型数量统计 */
     this._LOAD_COUNT_ = 0
     /** 模型指针 */
@@ -150,9 +158,6 @@ class ParticleSystem {
       this.handleWindowResize,
       false
     )
-    window.addEventListener('dblclick', () => {
-      this.changeModel()
-    })
   }
 
   // 窗口大小变动时调用
@@ -224,7 +229,7 @@ class ParticleSystem {
         finalGeometry.setAttribute('position', new THREE.BufferAttribute(finalVertices, 3))
         // 材质选择
         const FinalPoints = new THREE.Points(finalGeometry, i.material ? i.material : this.PointMaterial)
-        this.modelList.push(FinalPoints)
+        this.modelList.set(i.name, FinalPoints)
         // 回调
         i.onLoadComplete && i.onLoadComplete(finalGeometry, FinalPoints)
         this._LOAD_COUNT_++
@@ -263,13 +268,13 @@ class ParticleSystem {
     window.addEventListener('mousemove', this.rotateScene)
   }
 
-  changeModel() {
-    if (this.ModelPointer === 1) {
-      this.ModelPointer = 0
-    } else {
-      this.ModelPointer = 1
+  ChangeModel(name: string) {
+    const item = this.modelList.get(name)
+    if (!item) {
+      console.warn('未找到指定名字的模型，改变操作已终止！传入的名字：' + (name).toString())
+      return
     }
-    const targetModel = this.modelList[this.ModelPointer].geometry.getAttribute('position')
+    const targetModel = item!.geometry.getAttribute('position')
     // !使用断言
     const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
     const arr = sourceModel.array
@@ -284,12 +289,16 @@ class ParticleSystem {
           y: targetModel.array[cur * 3 + 1],
           z: targetModel.array[cur * 3 + 2]
         },
-        1500
-      ).delay(1500 * Math.random()).easing(Tween.Easing.Exponential.In).start().onUpdate((o) => {
+        this.AnimateDuration
+      ).delay(this.AnimateDelayDuration * Math.random()).easing(Tween.Easing.Exponential.In).start().onUpdate((o) => {
         sourceModel.setXYZ(i, o.x, o.y, o.z)
         sourceModel.needsUpdate = true
       })
     }
+    // 触发 addons 的钩子
+    this.addons?.forEach((val) => {
+      val.ChangeModel && val.ChangeModel()
+    })
   }
 
   // 监听鼠标移动旋转场景

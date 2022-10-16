@@ -5,8 +5,9 @@ import { addonsBasic } from './addons'
 export interface AtmosphereParticleProps {
   longestDistance: number
   particleSum: number
-  renderUpdate?: (Point: THREE.Points | undefined) => void
-  callback?: (Point: THREE.Points | undefined) => void
+  renderUpdate?: (Point: THREE.Points) => void
+  callback?: (Point: THREE.Points) => void
+  onChangeModel?: (Point: THREE.Points) => void
 }
 
 const n = new THREE.PointsMaterial({
@@ -24,16 +25,18 @@ function getRangeRandom(e: number, t: number) {
 class AtmosphereParticle extends addonsBasic {
   private longestDistance: number
   private particleSum: number
-  private renderUpdate?: (Point: THREE.Points | undefined) => void
-  private callback?: (Point: THREE.Points | undefined) => void
+  private renderUpdate?: (Point: THREE.Points) => void
+  private onChangeModel?: (Point: THREE.Points) => void
+  private callback?: (Point: THREE.Points) => void
   public Geometry?: THREE.Points
 
   constructor(options: AtmosphereParticleProps) {
     super()
-    const { longestDistance, particleSum, renderUpdate } = options
+    const { longestDistance, particleSum, renderUpdate, onChangeModel } = options
     this.longestDistance = longestDistance
     this.particleSum = particleSum
     this.renderUpdate = renderUpdate
+    this.onChangeModel = onChangeModel
 
     const vertices = []
     for (let i = 0; i < this.particleSum; i++) {
@@ -50,7 +53,11 @@ class AtmosphereParticle extends addonsBasic {
   }
 
   update = () => {
-    this.renderUpdate && this.renderUpdate(this.Geometry)
+    this.renderUpdate && this.renderUpdate(this.Geometry!)
+  }
+
+  ChangeModel = () => {
+    this.onChangeModel && this.onChangeModel(this.Geometry!)
   }
 }
 
