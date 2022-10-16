@@ -13,6 +13,7 @@ import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { throttle } from 'lodash'
 
 import g from '@/assets/images/gradient.png'
+import { addonsBasic } from './addons'
 
 const _MODEL_PATH_ = [
   // new URL('models/examples/AngularSphere.obj', import.meta.url).href,
@@ -47,10 +48,16 @@ class ParticleSystem {
   private AnimateEffectParticle?: THREE_POINT
   private mouseV: number
   private mouseK: number
+  /** 额外插件的数组 */
+  public addons?: any[]
 
   // 新编写的物体添加核心
-  constructor(CanvasWrapper: HTMLDivElement) {
-    this.CanvasWrapper = CanvasWrapper
+  constructor(options: {
+    CanvasWrapper: HTMLDivElement
+    addons?: any[]
+  }) {
+    this.CanvasWrapper = options.CanvasWrapper
+    this.addons = options.addons ? options.addons : []
     /* 宽高 */
     this.HEIGHT = window.innerHeight
     this.WIDTH = window.innerWidth
@@ -106,6 +113,12 @@ class ParticleSystem {
     // 坐标轴辅助器
     const axesHelper = new THREE.AxesHelper(500)
     this.scene.add(axesHelper)
+    // addons 添加
+    if (this.addons) {
+      this.addons.forEach((val) => {
+        this.scene?.add(val.Geometry)
+      })
+    }
     // 创建渲染器
     this.renderer = new THREE.WebGLRenderer({
       // 在 css 中设置背景色透明显示渐变色
@@ -265,8 +278,8 @@ class ParticleSystem {
           y: targetModel.array[cur * 3 + 1],
           z: targetModel.array[cur * 3 + 2]
         },
-        2000
-      ).delay(2000 * Math.random()).easing(Tween.Easing.Exponential.In).start().onUpdate((o) => {
+        1500
+      ).delay(1500 * Math.random()).easing(Tween.Easing.Exponential.In).start().onUpdate((o) => {
         sourceModel.setXYZ(i, o.x, o.y, o.z)
         sourceModel.needsUpdate = true
       })
@@ -279,6 +292,7 @@ class ParticleSystem {
     this.mouseK = 1e-4 * (e.clientY - this.HEIGHT / 2)
   }, 100)
 
+  // 更新场景旋转
   _updateRotation() {
     if (this.scene != null) {
       this.scene.rotation.y += (this.mouseV - this.scene.rotation.y) / 50
@@ -294,6 +308,10 @@ class ParticleSystem {
     this.stats?.update()
     // 场景旋转检测
     this._updateRotation()
+    // addons 执行更新
+    this.addons && this.addons.forEach((val) => {
+      val.update && val.update()
+    })
     // 渲染器执行渲染
     // this.renderer.render(this.scene, this.camera);
     // 效果器执行渲染，如果不需要效果器请使用上方的渲染模式
