@@ -14,6 +14,7 @@ import { throttle } from 'lodash'
 
 import g from '@/assets/images/gradient.png'
 import { addonsBasic } from './addons'
+import { ParticleModelProps } from '@/declare/THREE'
 
 const _MODEL_PATH_ = [
   // new URL('models/examples/AngularSphere.obj', import.meta.url).href,
@@ -48,16 +49,20 @@ class ParticleSystem {
   private AnimateEffectParticle?: THREE_POINT
   private mouseV: number
   private mouseK: number
+  /** 模型数组 */
+  public Models: ParticleModelProps[]
   /** 额外插件的数组 */
   public addons?: any[]
 
   // 新编写的物体添加核心
   constructor(options: {
     CanvasWrapper: HTMLDivElement
+    Models: ParticleModelProps[]
     addons?: any[]
   }) {
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = options.addons ? options.addons : []
+    this.Models = [...options.Models]
     /* 宽高 */
     this.HEIGHT = window.innerHeight
     this.WIDTH = window.innerWidth
@@ -206,24 +211,25 @@ class ParticleSystem {
       depthWrite: false,
       map: new THREE.TextureLoader().load(g)
     })
-    const scaleNum = 500
     // 读取预置列表
-    for (const i of _MODEL_PATH_) {
+    for (const i of this.Models) {
       const finalGeometry = new THREE.BufferGeometry()
       let finalVertices = new Float32Array([])
-      loader.load(i, (group) => {
+      loader.load(i.path, (group) => {
         for (const i of group.children) {
           // @ts-expect-error 不知道是什么原因导致 ts 判断出错
           const arr = i.geometry.attributes.position.array
           finalVertices = new Float32Array([...finalVertices, ...arr])
         }
         finalGeometry.setAttribute('position', new THREE.BufferAttribute(finalVertices, 3))
-        finalGeometry.scale(scaleNum, scaleNum, scaleNum)
-        const FinalPoints = new THREE.Points(finalGeometry, this.PointMaterial)
+        // 材质选择
+        const FinalPoints = new THREE.Points(finalGeometry, i.material ? i.material : this.PointMaterial)
         this.modelList.push(FinalPoints)
+        // 回调
+        i.onLoadComplete && i.onLoadComplete(finalGeometry, FinalPoints)
         this._LOAD_COUNT_++
         // 所有模型加载完后触发播放事件
-        if (this._LOAD_COUNT_ === _MODEL_PATH_.length) this._finishLoadModal()
+        if (this._LOAD_COUNT_ === this.Models.length) this._finishLoadModal()
       })
     }
   }

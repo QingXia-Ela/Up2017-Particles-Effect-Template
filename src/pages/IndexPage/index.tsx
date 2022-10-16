@@ -4,6 +4,7 @@ import Styles from './index.module.scss'
 import ParticleSystem from '@/THREE'
 import { useEffect, useRef } from 'react'
 import AtmosphereParticle from '@/THREE/atmosphere'
+import { ParticleModelProps } from '@/declare/THREE'
 
 function IndexPage() {
   const wrapper = useRef<HTMLDivElement | null>(null)
@@ -47,10 +48,29 @@ function IndexPage() {
     }
   })
 
+  const scaleNum = 500
+  const Models: ParticleModelProps[] = [
+    {
+      name: 'cube',
+      path: new URL('../../THREE/models/examples/cube.obj', import.meta.url).href,
+      onLoadComplete(Geometry, PointGeometry) {
+        Geometry.scale(scaleNum, scaleNum, scaleNum)
+      },
+    },
+    {
+      name: 'ball',
+      path: new URL('../../THREE/models/examples/ball.obj', import.meta.url).href,
+      onLoadComplete(Geometry, PointGeometry) {
+        Geometry.scale(scaleNum, scaleNum, scaleNum)
+      },
+    }
+  ]
+
   useEffect(() => {
     if ((MainParticle == null) && wrapper.current != null) {
       MainParticle = new ParticleSystem({
         CanvasWrapper: wrapper.current,
+        Models,
         addons: [Atomsphere1, Atomsphere2, Atomsphere3]
       })
     }
