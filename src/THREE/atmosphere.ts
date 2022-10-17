@@ -10,13 +10,17 @@ export interface AtmosphereParticleProps {
   onChangeModel?: (Point: THREE.Points) => void
 }
 
+const loader = new THREE.TextureLoader()
+loader.crossOrigin = ''
+
 const n = new THREE.PointsMaterial({
   size: 7,
-  map: new THREE.TextureLoader().load(g),
+  map: loader.load(g),
   blending: THREE.AdditiveBlending,
   depthWrite: false,
   transparent: true,
 });
+
 
 function getRangeRandom(e: number, t: number) {
   return Math.random() * (t - e) + e

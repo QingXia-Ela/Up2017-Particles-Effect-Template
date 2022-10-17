@@ -16,15 +16,6 @@ import g from '@/assets/images/gradient.png'
 import { addonsBasic } from './addons'
 import { ParticleModelProps } from '@/declare/THREE'
 
-const _MODEL_PATH_ = [
-  // new URL('models/examples/AngularSphere.obj', import.meta.url).href,
-  new URL('models/examples/cube.obj', import.meta.url).href,
-  new URL('models/examples/ball.obj', import.meta.url).href
-  // new URL('models/examples/cone.obj', import.meta.url).href
-  // require("../../models/examples/cube.obj"),
-  // require("../../models/examples/AngularSphere.obj"),
-]
-
 function getRangeRandom(e: number, t: number) {
   return Math.random() * (t - e) + e
 }
@@ -46,15 +37,20 @@ class ParticleSystem {
   private stats?: Stats
   private composer?: EffectComposer
   private PointMaterial?: THREE.PointsMaterial
-  private AnimateEffectParticle?: THREE_POINT
+  /** 表演粒子，即用于呈现模型的粒子载体对象 */
+  public AnimateEffectParticle?: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
   private AnimateDuration: number
   private AnimateDelayDuration: number
   private mouseV: number
   private mouseK: number
+  private hadListenMouseMove?: boolean
   /** 模型数组 */
   public Models: ParticleModelProps[]
   /** 额外插件的数组 */
   public addons?: any[]
+  // 函数相关
+  private onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
+
 
   // 新编写的物体添加核心
   constructor(options: {
@@ -63,13 +59,15 @@ class ParticleSystem {
     addons?: any[]
     AnimateDuration?: number
     AnimateDelayDuration?: number
+    onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
   }) {
-    const { AnimateDuration, AnimateDelayDuration } = options
+    const { AnimateDuration, AnimateDelayDuration, onModelsFinishedLoad } = options
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = options.addons ? options.addons : []
     this.Models = [...options.Models]
     this.AnimateDuration = AnimateDuration ? AnimateDuration : 1500
     this.AnimateDelayDuration = AnimateDelayDuration ? AnimateDelayDuration : 1500
+    this.onModelsFinishedLoad = onModelsFinishedLoad
 
     /* 宽高 */
     this.HEIGHT = window.innerHeight
@@ -101,7 +99,7 @@ class ParticleSystem {
     this.update()
   }
 
-  createScene() {
+  private createScene() {
     // 创建场景
     this.scene = new THREE.Scene()
     // 在场景中添加雾的效果，参数分别代表‘雾的颜色’、‘开始雾化的视线距离’、刚好雾化至看不见的视线距离’
@@ -161,11 +159,12 @@ class ParticleSystem {
   }
 
   // 窗口大小变动时调用
-  handleWindowResize = () => {
+  private handleWindowResize = () => {
     // 更新渲染器的高度和宽度以及相机的纵横比
     this.HEIGHT = window.innerHeight
     this.WIDTH = window.innerWidth
     this.renderer?.setSize(this.WIDTH, this.HEIGHT)
+    this.composer?.reset()
     if (this.camera != null) {
       this.camera.aspect = this.WIDTH / this.HEIGHT
       this.camera.updateProjectionMatrix()
@@ -173,7 +172,7 @@ class ParticleSystem {
   }
 
   // 性能监控
-  initStats() {
+  private initStats() {
     this.stats = Stats()
     if (this.stats != null) {
       // 将性能监控屏区显示在左上角
@@ -186,7 +185,7 @@ class ParticleSystem {
   }
 
   // 效果器
-  createEffect() {
+  private createEffect() {
     this.composer = new EffectComposer(this.renderer!)
     const renderPass = new RenderPass(this.scene!, this.camera!)
     const bloomPass = new BloomPass(0.75)
@@ -203,8 +202,9 @@ class ParticleSystem {
   }
 
   // 添加模型
-  _addModels() {
-    const loader = new OBJLoader()
+  private _addModels() {
+    const loader = new OBJLoader(), TextureLoader = new THREE.TextureLoader()
+    TextureLoader.crossOrigin = ''
     this.PointMaterial = new THREE.PointsMaterial({
       // 粒子大小
       size: 5,
@@ -214,7 +214,7 @@ class ParticleSystem {
       opacity: 1,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-      map: new THREE.TextureLoader().load(g)
+      map: TextureLoader.load(g)
     })
     // 读取预置列表
     for (const i of this.Models) {
@@ -240,7 +240,7 @@ class ParticleSystem {
   }
 
   // 完成模型加载
-  _finishLoadModal() {
+  private _finishLoadModal() {
     // 获得最大的粒子数量
     let maxParticlesCount = 0
 
@@ -265,9 +265,14 @@ class ParticleSystem {
     this.scene?.add(this.AnimateEffectParticle)
 
     // 开始监听鼠标移动事件
-    window.addEventListener('mousemove', this.rotateScene)
+    // 钩子
+    this.onModelsFinishedLoad && this.onModelsFinishedLoad(this.AnimateEffectParticle!, this.scene!)
   }
 
+  /**
+   * 修改模型
+   * @param {string} name 模型名字
+   */
   ChangeModel(name: string) {
     const item = this.modelList.get(name)
     if (!item) {
@@ -301,14 +306,26 @@ class ParticleSystem {
     })
   }
 
+  /**
+   * 开始监听鼠标移动的钩子
+   * 
+   * 一般在入场动画结束后调用
+   */
+  ListenMouseMove() {
+    if (!this.hadListenMouseMove) {
+      window.addEventListener('mousemove', this.rotateScene)
+      this.hadListenMouseMove = true
+    }
+  }
+
   // 监听鼠标移动旋转场景
-  rotateScene = throttle((e: MouseEvent) => {
+  private rotateScene = throttle((e: MouseEvent) => {
     this.mouseV = 3e-4 * (e.clientX - this.WIDTH / 2)
     this.mouseK = 1e-4 * (e.clientY - this.HEIGHT / 2)
   }, 100)
 
   // 更新场景旋转
-  _updateRotation() {
+  private _updateRotation() {
     if (this.scene != null) {
       this.scene.rotation.y += (this.mouseV - this.scene.rotation.y) / 50
       this.scene.rotation.x += (this.mouseK - this.scene.rotation.x) / 50
@@ -316,7 +333,7 @@ class ParticleSystem {
   }
 
   // 循环更新渲染
-  update() {
+  private update() {
     // 动画插件
     Tween.update()
     // 性能监测插件

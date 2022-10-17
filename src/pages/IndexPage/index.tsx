@@ -24,8 +24,7 @@ function IndexPage() {
     },
     callback: (Point) => {
       if (Point) {
-        Point.position.x = -0.1 * al
-        Point.position.z = -1.1 * al
+        Point.position.z = -1 * al
       }
     },
     onChangeModel: () => {
@@ -43,7 +42,7 @@ function IndexPage() {
     callback: (Point) => {
       if (Point) {
         Point.position.y = -0.2 * al
-        Point.position.z = -0.8 * al
+        Point.position.z = -1 * al
       }
     }
   })
@@ -74,9 +73,23 @@ function IndexPage() {
       onLoadComplete(Geometry, PointGeometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
       },
+    },
+    {
+      name: 'ball',
+      path: new URL('../../THREE/models/examples/AngularSphere.obj', import.meta.url).href,
+      onLoadComplete(Geometry, PointGeometry) {
+        Geometry.scale(scaleNum, scaleNum, scaleNum)
+      },
+    },
+    {
+      name: 'ball',
+      path: new URL('../../THREE/models/examples/cone.obj', import.meta.url).href,
+      onLoadComplete(Geometry, PointGeometry) {
+        Geometry.scale(scaleNum, scaleNum, scaleNum)
+      },
     }
   ]
-
+  // @ts-ignore
   window.changeModel = (name: string) => {
     if (MainParticle) {
       MainParticle.ChangeModel(name)
@@ -88,7 +101,15 @@ function IndexPage() {
       MainParticle = new ParticleSystem({
         CanvasWrapper: wrapper.current,
         Models,
-        addons: [Atomsphere1, Atomsphere2, Atomsphere3]
+        addons: [Atomsphere1, Atomsphere2, Atomsphere3],
+        onModelsFinishedLoad: (point) => {
+          point.rotation.y = -3.14 * 0.4
+          new Tween.Tween(point.rotation).to({ y: 0 }, 5000).easing(Tween.Easing.Quintic.Out).start()
+          setTimeout(() => {
+            MainParticle?.ChangeModel('ball')
+          }, 2500);
+          MainParticle?.ListenMouseMove()
+        }
       })
     }
   })
