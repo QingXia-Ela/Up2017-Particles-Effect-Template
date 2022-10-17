@@ -72,17 +72,18 @@ function IndexPage() {
       path: new URL('../../THREE/models/examples/ball.obj', import.meta.url).href,
       onLoadComplete(Geometry, PointGeometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
+        Geometry.translate(100, 100, 0)
       },
     },
     {
-      name: 'ball',
+      name: 'AngularSphere',
       path: new URL('../../THREE/models/examples/AngularSphere.obj', import.meta.url).href,
       onLoadComplete(Geometry, PointGeometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
       },
     },
     {
-      name: 'ball',
+      name: 'cone',
       path: new URL('../../THREE/models/examples/cone.obj', import.meta.url).href,
       onLoadComplete(Geometry, PointGeometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)

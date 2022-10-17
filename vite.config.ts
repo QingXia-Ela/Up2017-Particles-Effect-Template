@@ -1,11 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { splitVendorChunkPlugin } from 'vite'
+import viteCompression from 'vite-plugin-compression';
 import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/',
-  plugins: [react()],
+  base: '/up2017-particle-effect/',
+  plugins: [
+    react(),
+    splitVendorChunkPlugin(),
+    viteCompression()
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, './src/'),
