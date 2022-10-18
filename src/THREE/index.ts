@@ -9,6 +9,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { FocusShader } from 'three/examples/jsm/shaders/FocusShader'
 
 import Tween from '@tweenjs/tween.js'
+import type { Group as TweenGroup } from '@tweenjs/tween.js'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { throttle } from 'lodash'
 
@@ -44,18 +45,22 @@ class ParticleSystem {
   private mouseV: number
   private mouseK: number
   private hadListenMouseMove?: boolean
+  private MainParticleGroup?: TweenGroup
   /** 模型数组 */
   public Models: ParticleModelProps[]
   /** 额外插件的数组 */
   public addons?: any[]
   // 函数相关
+  /** 当所有模型加载完成是进行调用 */
   private onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
-
+  /** 对象内置的更新函数，内部使用 `requestAnimationFrame`，每渲染新的一帧时进行调用 */
+  public onRendering?: (t: number) => void
 
   // 新编写的物体添加核心
   constructor(options: {
     CanvasWrapper: HTMLDivElement
     Models: ParticleModelProps[]
+    /** addons，他应该是一个继承了 `addonsBasic` 类的对象 */
     addons?: any[]
     AnimateDuration?: number
     AnimateDelayDuration?: number
@@ -96,7 +101,7 @@ class ParticleSystem {
     this.mouseK = 0
     this.mouseV = 0
     // 循环更新渲染场景
-    this.update()
+    this.update(0)
   }
 
   private createScene() {
@@ -221,9 +226,9 @@ class ParticleSystem {
       const finalGeometry = new THREE.BufferGeometry()
       let finalVertices = new Float32Array([])
       loader.load(i.path, (group) => {
-        for (const i of group.children) {
+        for (const j of group.children) {
           // @ts-expect-error 不知道是什么原因导致 ts 判断出错
-          const arr = i.geometry.attributes.position.array
+          const arr = j.geometry.attributes.position.array
           finalVertices = new Float32Array([...finalVertices, ...arr])
         }
         finalGeometry.setAttribute('position', new THREE.BufferAttribute(finalVertices, 3))
@@ -284,9 +289,11 @@ class ParticleSystem {
     const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
     const arr = sourceModel.array
     // 停止当前所有动画
-    Tween.removeAll()
+    if (!this.MainParticleGroup) this.MainParticleGroup = new Tween.Group()
+
+    this.MainParticleGroup.removeAll()
     for (let i = 0; i < this.maxParticlesCount; i++) {
-      const tween = new Tween.Tween({ x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] })
+      const tween = new Tween.Tween({ x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] }, this.MainParticleGroup)
       const cur = i % targetModel.count
       tween.to(
         {
@@ -333,9 +340,13 @@ class ParticleSystem {
   }
 
   // 循环更新渲染
-  private update() {
+  private update(t: number) {
     // 动画插件
     Tween.update()
+    // 更新自己的动画组
+    this.MainParticleGroup?.update()
+    // 外置的渲染函数
+    this.onRendering && this.onRendering(t)
     // 性能监测插件
     this.stats?.update()
     // 场景旋转检测
@@ -349,8 +360,8 @@ class ParticleSystem {
     // 效果器执行渲染，如果不需要效果器请使用上方的渲染模式
     this.composer!.render()
     // 循环调用
-    requestAnimationFrame(() => {
-      this.update()
+    requestAnimationFrame((t) => {
+      this.update(t)
     })
   }
 }
