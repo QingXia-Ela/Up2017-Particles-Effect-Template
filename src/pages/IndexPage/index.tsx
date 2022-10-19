@@ -1,11 +1,12 @@
 import * as React from 'react'
 import Styles from './index.module.scss'
-
+import { BufferGeometry, BufferAttribute } from 'three'
 import ParticleSystem from '@/THREE'
 import { useEffect, useRef } from 'react'
 import AtmosphereParticle from '@/THREE/atmosphere'
 import { ParticleModelProps } from '@/declare/THREE'
 import Tween from '@tweenjs/tween.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 function IndexPage() {
   const wrapper = useRef<HTMLDivElement | null>(null)

@@ -46,6 +46,7 @@ class ParticleSystem {
   private mouseK: number
   private hadListenMouseMove?: boolean
   private MainParticleGroup?: TweenGroup
+  private defaultLoader: OBJLoader
   /** 模型数组 */
   public Models: ParticleModelProps[]
   /** 额外插件的数组 */
@@ -66,14 +67,14 @@ class ParticleSystem {
     AnimateDelayDuration?: number
     onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
   }) {
-    const { AnimateDuration, AnimateDelayDuration, onModelsFinishedLoad } = options
+    const { AnimateDuration, AnimateDelayDuration, onModelsFinishedLoad, } = options
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = options.addons ? options.addons : []
     this.Models = [...options.Models]
     this.AnimateDuration = AnimateDuration ? AnimateDuration : 1500
     this.AnimateDelayDuration = AnimateDelayDuration ? AnimateDelayDuration : 1500
     this.onModelsFinishedLoad = onModelsFinishedLoad
-
+    this.defaultLoader = new OBJLoader()
     /* 宽高 */
     this.HEIGHT = window.innerHeight
     this.WIDTH = window.innerWidth
@@ -223,24 +224,40 @@ class ParticleSystem {
     })
     // 读取预置列表
     for (const i of this.Models) {
-      const finalGeometry = new THREE.BufferGeometry()
+      let finalGeometry: THREE.BufferGeometry | null = null
       let finalVertices = new Float32Array([])
-      loader.load(i.path, (group) => {
-        for (const j of group.children) {
-          // @ts-expect-error 不知道是什么原因导致 ts 判断出错
-          const arr = j.geometry.attributes.position.array
-          finalVertices = new Float32Array([...finalVertices, ...arr])
-        }
-        finalGeometry.setAttribute('position', new THREE.BufferAttribute(finalVertices, 3))
+
+      const finishLoad = () => {
         // 材质选择
-        const FinalPoints = new THREE.Points(finalGeometry, i.material ? i.material : this.PointMaterial)
+        const FinalPoints = new THREE.Points(finalGeometry!, i.material ? i.material : this.PointMaterial)
         this.modelList.set(i.name, FinalPoints)
         // 回调
-        i.onLoadComplete && i.onLoadComplete(finalGeometry, FinalPoints)
+        i.onLoadComplete && i.onLoadComplete(finalGeometry!, FinalPoints)
         this._LOAD_COUNT_++
         // 所有模型加载完后触发播放事件
         if (this._LOAD_COUNT_ === this.Models.length) this._finishLoadModal()
-      })
+      }
+
+      if (i.loader) {
+        const { loaderInstance, load } = i.loader
+        loaderInstance.load(i.path, (args) => {
+          finalGeometry = load(args)
+          finishLoad()
+        })
+      } else {
+        this.defaultLoader.load(i.path, (group) => {
+          for (const j of group.children) {
+            // @ts-expect-error 不知道是什么原因导致 ts 判断出错
+            const arr = j.geometry.attributes.position.array
+            finalVertices = new Float32Array([...finalVertices, ...arr])
+          }
+          finalGeometry = new THREE.BufferGeometry()
+          finalGeometry.setAttribute('position', new THREE.BufferAttribute(finalVertices, 3))
+          console.log(group);
+
+          finishLoad()
+        })
+      }
     }
   }
 
