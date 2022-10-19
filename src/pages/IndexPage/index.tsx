@@ -1,12 +1,10 @@
 import * as React from 'react'
 import Styles from './index.module.scss'
-import { BufferGeometry, BufferAttribute } from 'three'
 import ParticleSystem from '@/THREE'
 import { useEffect, useRef } from 'react'
 import AtmosphereParticle from '@/THREE/atmosphere'
 import { ParticleModelProps } from '@/declare/THREE'
 import Tween from '@tweenjs/tween.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 function IndexPage() {
   const wrapper = useRef<HTMLDivElement | null>(null)
@@ -25,9 +23,7 @@ function IndexPage() {
       Point.rotation.x -= TurnBasicNum.firefly
     },
     callback: (Point) => {
-      if (Point) {
-        Point.position.z = -1 * al
-      }
+      Point.position.z = -1 * al
     },
     onChangeModel: () => {
       tween2.stop()
@@ -43,10 +39,8 @@ function IndexPage() {
       Point.rotation.y += TurnBasicNum.firefly
     },
     callback: (Point) => {
-      if (Point) {
-        Point.position.y = -0.2 * al
-        Point.position.z = -1 * al
-      }
+      Point.position.y = -0.2 * al
+      Point.position.z = -1 * al
     }
   })
   const Atomsphere3 = new AtmosphereParticle({
@@ -56,9 +50,7 @@ function IndexPage() {
       Point.rotation.z += TurnBasicNum.firefly / 2
     },
     callback: (Point) => {
-      if (Point) {
-        Point.position.z = -1.2 * al
-      }
+      Point.position.z = -1.2 * al
     }
   })
 

@@ -51,16 +51,15 @@ class AtmosphereParticle extends addonsBasic {
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
     this.Geometry = new THREE.Points(geometry, n)
-
-    ;(options.callback != null) && options.callback(this.Geometry)
+    options.callback?.call(this, this.Geometry)
   }
 
   update = () => {
-    (this.renderUpdate != null) && this.renderUpdate(this.Geometry)
+    this.renderUpdate?.call(this, this.Geometry!)
   }
 
   ChangeModel = () => {
-    (this.onChangeModel != null) && this.onChangeModel(this.Geometry)
+    this.onChangeModel?.call(this, this.Geometry!)
   }
 }
 

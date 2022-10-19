@@ -15,7 +15,6 @@ import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { throttle } from 'lodash'
 
 import g from '@/assets/images/gradient.png'
-import { addonsBasic } from './addons'
 import { ParticleModelProps } from '@/declare/THREE'
 
 function getRangeRandom(e: number, t: number) {
@@ -73,8 +72,8 @@ class ParticleSystem {
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = (options.addons != null) ? options.addons : []
     this.Models = [...options.Models]
-    this.AnimateDuration = AnimateDuration || 1500
-    this.AnimateDelayDuration = AnimateDelayDuration || 1500
+    this.AnimateDuration = typeof AnimateDuration === 'number' ? AnimateDuration : 1500
+    this.AnimateDelayDuration = typeof AnimateDelayDuration === 'number' ? AnimateDelayDuration : 1500
     this.onModelsFinishedLoad = onModelsFinishedLoad
     this.defaultLoader = new OBJLoader()
     /** 粒子Map */
@@ -100,8 +99,8 @@ class ParticleSystem {
     this.createEffect()
     // 轨道控制插件（鼠标拖拽视角、缩放等）
     this.orbitControls = new OrbitControls(
-      this.camera,
-      this.renderer.domElement
+      this.camera!,
+      this.renderer!.domElement
     )
     this.mouseK = 0
     this.mouseV = 0
@@ -196,8 +195,8 @@ class ParticleSystem {
 
   // 效果器
   private createEffect() {
-    this.composer = new EffectComposer(this.renderer)
-    const renderPass = new RenderPass(this.scene, this.camera)
+    this.composer = new EffectComposer(this.renderer!)
+    const renderPass = new RenderPass(this.scene!, this.camera!)
     const bloomPass = new BloomPass(0.75)
     const filmPass = new FilmPass(0.5, 0.5, 1500, 0)
     const shaderPass = new ShaderPass(FocusShader)
@@ -213,7 +212,7 @@ class ParticleSystem {
 
   // 添加模型
   private _addModels() {
-    const loader = new OBJLoader(); const TextureLoader = new THREE.TextureLoader()
+    const TextureLoader = new THREE.TextureLoader()
     TextureLoader.crossOrigin = ''
     this.PointMaterial = new THREE.PointsMaterial({
       // 粒子大小
@@ -228,7 +227,7 @@ class ParticleSystem {
     })
     // 读取预置列表
     for (const i of this.Models) {
-      let finalGeometry: THREE.BufferGeometry | null = null
+      let finalGeometry: THREE.BufferGeometry
       let finalVertices = new Float32Array([])
 
       const finishLoad = () => {
@@ -236,7 +235,7 @@ class ParticleSystem {
         const FinalPoints = new THREE.Points(finalGeometry, (i.material != null) ? i.material : this.PointMaterial)
         this.modelList.set(i.name, FinalPoints)
         // 回调
-        ; (i.onLoadComplete != null) && i.onLoadComplete(finalGeometry, FinalPoints)
+        i.onLoadComplete?.call(this, finalGeometry, FinalPoints)
         this._LOAD_COUNT_++
         // 所有模型加载完后触发播放事件
         if (this._LOAD_COUNT_ === this.Models.length) this._finishLoadModal()
@@ -291,7 +290,7 @@ class ParticleSystem {
 
     // 开始监听鼠标移动事件
     // 钩子
-    ; (this.onModelsFinishedLoad != null) && this.onModelsFinishedLoad(this.AnimateEffectParticle, this.scene)
+    this.onModelsFinishedLoad?.call(this, this.AnimateEffectParticle, this.scene!)
   }
 
   /**
@@ -306,7 +305,7 @@ class ParticleSystem {
     }
     const targetModel = item.geometry.getAttribute('position')
     // !使用断言
-    const sourceModel = this.AnimateEffectParticle.geometry.getAttribute('position')
+    const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
     const arr = sourceModel.array
     // 停止当前所有动画
     if (this.MainParticleGroup == null) this.MainParticleGroup = new Tween.Group()
@@ -332,7 +331,7 @@ class ParticleSystem {
     }
     // 触发 addons 的钩子
     this.addons?.forEach((val) => {
-      val.ChangeModel && val.ChangeModel()
+      val.ChangeModel?.call(this)
     })
   }
 
@@ -342,7 +341,7 @@ class ParticleSystem {
    * 一般在入场动画结束后调用
    */
   ListenMouseMove() {
-    if (!this.hadListenMouseMove) {
+    if (this.hadListenMouseMove !== true) {
       window.addEventListener('mousemove', this.rotateScene)
       this.hadListenMouseMove = true
     }
@@ -369,19 +368,19 @@ class ParticleSystem {
     // 更新自己的动画组
     this.MainParticleGroup?.update()
     // 外置的渲染函数
-    ; (this.onRendering != null) && this.onRendering(t)
+    this.onRendering?.call(this, t)
     // 性能监测插件
     this.stats?.update()
     // 场景旋转检测
     this._updateRotation()
     // addons 执行更新
-    ; (this.addons != null) && this.addons.forEach((val) => {
-      val.update && val.update()
+    this.addons?.forEach((val) => {
+      val.update()
     })
     // 渲染器执行渲染
     // this.renderer.render(this.scene, this.camera);
     // 效果器执行渲染，如果不需要效果器请使用上方的渲染模式
-    this.composer.render()
+    this.composer?.render()
     // 循环调用
     requestAnimationFrame((t) => {
       this.update(t)
