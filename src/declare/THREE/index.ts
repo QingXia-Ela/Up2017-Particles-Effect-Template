@@ -1,8 +1,8 @@
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader"
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader"
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader"
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
-import { MMDLoader } from "three/examples/jsm/loaders/MMDLoader"
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { MMDLoader } from 'three/examples/jsm/loaders/MMDLoader'
 import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader'
 import { PDBLoader } from 'three/examples/jsm/loaders/PDBLoader'
 import { PRWMLoader } from 'three/examples/jsm/loaders/PRWMLoader'
@@ -12,24 +12,23 @@ export type ALL_LOADER = OBJLoader | FBXLoader | DRACOLoader | GLTFLoader | MMDL
 
 export interface CustomLoader {
   /** 加载器实例 */
-  loaderInstance: ALL_LOADER,
+  loaderInstance: ALL_LOADER
   /**
    * 完成加载的回调函数
-   * 
+   *
    * 接受的参数是你指定加载器加载后的结果
-   * 
+   *
    * 你需要返回一个 `BufferGeometry` 对象，他记录着你的模型的所有顶点信息
    */
   load: (...args: any) => THREE.BufferGeometry
 }
 
-
 export interface ParticleModelProps {
   /** 模型名字，请确保是唯一名字 */
   name: string
-  /** 
+  /**
    * 模型路径，相对当前文件路径引入
-   * 
+   *
    * 可以查看这篇指南引入：https://vitejs.cn/vite3-cn/guide/assets.html#new-url-url-import-meta-url
    */
   path: string

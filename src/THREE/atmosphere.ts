@@ -18,20 +18,19 @@ const n = new THREE.PointsMaterial({
   map: loader.load(g),
   blending: THREE.AdditiveBlending,
   depthWrite: false,
-  transparent: true,
-});
-
+  transparent: true
+})
 
 function getRangeRandom(e: number, t: number) {
   return Math.random() * (t - e) + e
 }
 
 class AtmosphereParticle extends addonsBasic {
-  private longestDistance: number
-  private particleSum: number
-  private renderUpdate?: (Point: THREE.Points) => void
-  private onChangeModel?: (Point: THREE.Points) => void
-  private callback?: (Point: THREE.Points) => void
+  private readonly longestDistance: number
+  private readonly particleSum: number
+  private readonly renderUpdate?: (Point: THREE.Points) => void
+  private readonly onChangeModel?: (Point: THREE.Points) => void
+  private readonly callback?: (Point: THREE.Points) => void
   public Geometry?: THREE.Points
 
   constructor(options: AtmosphereParticleProps) {
@@ -53,15 +52,15 @@ class AtmosphereParticle extends addonsBasic {
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
     this.Geometry = new THREE.Points(geometry, n)
 
-    options.callback && options.callback(this.Geometry)
+    ;(options.callback != null) && options.callback(this.Geometry)
   }
 
   update = () => {
-    this.renderUpdate && this.renderUpdate(this.Geometry!)
+    (this.renderUpdate != null) && this.renderUpdate(this.Geometry)
   }
 
   ChangeModel = () => {
-    this.onChangeModel && this.onChangeModel(this.Geometry!)
+    (this.onChangeModel != null) && this.onChangeModel(this.Geometry)
   }
 }
 
