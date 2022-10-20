@@ -326,7 +326,7 @@ class ParticleSystem {
    * 修改模型
    * @param {string} name 模型名字
    */
-  ChangeModel(name: string) {
+  ChangeModel(name: string, time: number = 1500) {
     const item = this.modelList.get(name)
     if (item == null) {
       console.warn('未找到指定名字的模型，改变操作已终止！传入的名字：' + (name).toString())
@@ -346,7 +346,7 @@ class ParticleSystem {
           z: targetModel.array[cur * 3 + 2]
         },
         this.AnimateDuration
-      ).delay(this.AnimateDelayDuration * Math.random()).onUpdate((o) => {
+      ).delay(time * Math.random()).onUpdate((o) => {
         sourceModel.setXYZ(i, o.x, o.y, o.z)
         sourceModel.needsUpdate = true
       }).start()
