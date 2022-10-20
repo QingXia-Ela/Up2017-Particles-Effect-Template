@@ -23,9 +23,9 @@ function getRangeRandom(e: number, t: number) {
 
 type THREE_POINT = THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
 interface TWEEN_POINT {
-  x: number,
-  y: number,
-  z: number,
+  x: number
+  y: number
+  z: number
   tweenctx?: TweenProps<{ x: number, y: number, z: number }>
 }
 
@@ -291,23 +291,23 @@ class ParticleSystem {
       vertices.push(x, y, z)
 
       const p: TWEEN_POINT = {
-        x, y, z,
+        x, y, z
       }
       p.tweenctx = new Tween.Tween(p, this.MainParticleGroup).easing(Tween.Easing.Exponential.In)
         // 处理内部私有变量
         .onStop((o) => {
-          // @ts-ignore
+          // @ts-expect-error
           o.tweenctx!._valuesStart.x = o.x
-          // @ts-ignore
+          // @ts-expect-error
           o.tweenctx!._valuesStart.y = o.y
-          // @ts-ignore
+          // @ts-expect-error
           o.tweenctx!._valuesStart.z = o.z
         }).onComplete((o) => {
-          // @ts-ignore
+          // @ts-expect-error
           o.tweenctx!._valuesStart.x = o.x
-          // @ts-ignore
+          // @ts-expect-error
           o.tweenctx!._valuesStart.y = o.y
-          // @ts-ignore
+          // @ts-expect-error
           o.tweenctx!._valuesStart.z = o.z
         })
       this.ParticleAnimeMap[i] = p
@@ -357,6 +357,7 @@ class ParticleSystem {
       val.ChangeModel?.call(this)
     })
   }
+
   /**
    * 开始监听鼠标移动的钩子
    *
