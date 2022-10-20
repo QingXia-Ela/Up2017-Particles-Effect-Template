@@ -285,18 +285,33 @@ class ParticleSystem {
     // 基于最大点构建一个动画载体
     const vertices = []
     const randMaxLength = 1500
+    if (this.MainParticleGroup == null) this.MainParticleGroup = new Tween.Group()
     for (let i = 0; i < maxParticlesCount; i++) {
       const x = getRangeRandom(-1 * randMaxLength, randMaxLength)
       const y = getRangeRandom(-1 * randMaxLength, randMaxLength)
       const z = getRangeRandom(-1 * randMaxLength, randMaxLength)
       vertices.push(x, y, z)
 
-      let p: TWEEN_POINT = {
-        x,
-        y,
-        z,
+      const p: TWEEN_POINT = {
+        x, y, z,
       }
       p.tweenctx = new Tween.Tween(p, this.MainParticleGroup).easing(Tween.Easing.Exponential.In)
+        // 处理内部私有变量
+        .onStop((o) => {
+          // @ts-ignore
+          o.tweenctx!._valuesStart.x = o.x
+          // @ts-ignore
+          o.tweenctx!._valuesStart.y = o.y
+          // @ts-ignore
+          o.tweenctx!._valuesStart.z = o.z
+        }).onComplete((o) => {
+          // @ts-ignore
+          o.tweenctx!._valuesStart.x = o.x
+          // @ts-ignore
+          o.tweenctx!._valuesStart.y = o.y
+          // @ts-ignore
+          o.tweenctx!._valuesStart.z = o.z
+        })
       outerParticleAnimeMap.set(i, p)
     }
     const AnimateEffectGeometry = new THREE.BufferGeometry()
@@ -322,24 +337,22 @@ class ParticleSystem {
     const targetModel = item.geometry.getAttribute('position')
     // !使用断言
     const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
-    const arr = sourceModel.array
     // 停止当前所有动画
-    if (this.MainParticleGroup == null) this.MainParticleGroup = new Tween.Group()
-    // this.MainParticleGroup.removeAll()
+    this.MainParticleGroup?.removeAll()
     for (let i = 0; i < this.maxParticlesCount; i++) {
-      const tween = outerParticleAnimeMap.get(i)?.tweenctx
+      const p = outerParticleAnimeMap.get(i)?.tweenctx
       const cur = i % targetModel.count
-      tween?.stop().to(
+      p?.to(
         {
           x: targetModel.array[cur * 3],
           y: targetModel.array[cur * 3 + 1],
           z: targetModel.array[cur * 3 + 2]
         },
         this.AnimateDuration
-      ).delay(this.AnimateDelayDuration * Math.random()).start().onUpdate((o) => {
+      ).delay(this.AnimateDelayDuration * Math.random()).onUpdate((o) => {
         sourceModel.setXYZ(i, o.x, o.y, o.z)
         sourceModel.needsUpdate = true
-      })
+      }).start()
     }
     // 触发 addons 的钩子
     this.addons?.forEach((val) => {
