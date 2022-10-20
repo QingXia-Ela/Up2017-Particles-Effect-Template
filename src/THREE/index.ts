@@ -22,6 +22,12 @@ function getRangeRandom(e: number, t: number) {
 }
 
 type THREE_POINT = THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
+interface TWEEN_POINT {
+  x: number
+  y: number
+  z: number
+  tweenctx?: TweenProps<{ x: number, y: number, z: number }>
+}
 
 class ParticleSystem {
   private readonly CanvasWrapper: HTMLDivElement
@@ -47,7 +53,7 @@ class ParticleSystem {
   private hadListenMouseMove?: boolean
   private MainParticleGroup?: TweenGroup
   private readonly defaultLoader: OBJLoader
-  private readonly ParticleAnimeMap: Map<number, TweenProps<{ x: number, y: number, z: number }>>
+  private readonly ParticleAnimeMap: TWEEN_POINT[]
   /** 模型数组 */
   public Models: ParticleModelProps[]
   /** 额外插件的数组 */
@@ -77,7 +83,7 @@ class ParticleSystem {
     this.onModelsFinishedLoad = onModelsFinishedLoad
     this.defaultLoader = new OBJLoader()
     /** 粒子Map */
-    this.ParticleAnimeMap = new Map<number, TweenProps<{ x: number, y: number, z: number }>>()
+    this.ParticleAnimeMap = []
     /* 宽高 */
     this.HEIGHT = window.innerHeight
     this.WIDTH = window.innerWidth
@@ -277,11 +283,34 @@ class ParticleSystem {
     // 基于最大点构建一个动画载体
     const vertices = []
     const randMaxLength = 1500
+    this.MainParticleGroup = new Tween.Group()
     for (let i = 0; i < maxParticlesCount; i++) {
       const x = getRangeRandom(-1 * randMaxLength, randMaxLength)
       const y = getRangeRandom(-1 * randMaxLength, randMaxLength)
       const z = getRangeRandom(-1 * randMaxLength, randMaxLength)
       vertices.push(x, y, z)
+
+      const p: TWEEN_POINT = {
+        x, y, z
+      }
+      p.tweenctx = new Tween.Tween(p, this.MainParticleGroup).easing(Tween.Easing.Exponential.In)
+        // 处理内部私有变量
+        .onStop((o) => {
+          // @ts-expect-error
+          o.tweenctx!._valuesStart.x = o.x
+          // @ts-expect-error
+          o.tweenctx!._valuesStart.y = o.y
+          // @ts-expect-error
+          o.tweenctx!._valuesStart.z = o.z
+        }).onComplete((o) => {
+          // @ts-expect-error
+          o.tweenctx!._valuesStart.x = o.x
+          // @ts-expect-error
+          o.tweenctx!._valuesStart.y = o.y
+          // @ts-expect-error
+          o.tweenctx!._valuesStart.z = o.z
+        })
+      this.ParticleAnimeMap[i] = p
     }
     const AnimateEffectGeometry = new THREE.BufferGeometry()
     AnimateEffectGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3, false))
@@ -296,8 +325,9 @@ class ParticleSystem {
   /**
    * 修改模型
    * @param {string} name 模型名字
+   * @param {number?} time 动画时间长度，默认 `1500ms`
    */
-  ChangeModel(name: string) {
+  ChangeModel(name: string, time: number = 1500) {
     const item = this.modelList.get(name)
     if (item == null) {
       console.warn('未找到指定名字的模型，改变操作已终止！传入的名字：' + (name).toString())
@@ -306,28 +336,21 @@ class ParticleSystem {
     const targetModel = item.geometry.getAttribute('position')
     // !使用断言
     const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
-    const arr = sourceModel.array
     // 停止当前所有动画
-    if (this.MainParticleGroup == null) this.MainParticleGroup = new Tween.Group()
-    const animeMap = this.ParticleAnimeMap
-    this.MainParticleGroup.removeAll()
     for (let i = 0; i < this.maxParticlesCount; i++) {
-      if (!animeMap.has(i)) {
-        animeMap.set(i, new Tween.Tween({ x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] }, this.MainParticleGroup))
-      }
-      const tween = animeMap.get(i)
+      const p = this.ParticleAnimeMap[i]?.tweenctx
       const cur = i % targetModel.count
-      tween?.stop().to(
+      p?.stop().to(
         {
           x: targetModel.array[cur * 3],
           y: targetModel.array[cur * 3 + 1],
           z: targetModel.array[cur * 3 + 2]
         },
-        this.AnimateDuration
-      ).delay(this.AnimateDelayDuration * Math.random()).easing(Tween.Easing.Exponential.In).start().onUpdate((o) => {
+        time
+      ).delay(time * Math.random()).onUpdate((o) => {
         sourceModel.setXYZ(i, o.x, o.y, o.z)
         sourceModel.needsUpdate = true
-      })
+      }).start()
     }
     // 触发 addons 的钩子
     this.addons?.forEach((val) => {

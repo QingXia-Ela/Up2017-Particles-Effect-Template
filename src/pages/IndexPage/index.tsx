@@ -103,7 +103,7 @@ function IndexPage() {
           point.rotation.y = -3.14 * 0.8
           new Tween.Tween(point.rotation).to({ y: 0 }, 10000).easing(Tween.Easing.Quintic.Out).start()
           setTimeout(() => {
-            MainParticle?.ChangeModel('ball')
+            MainParticle?.ChangeModel('ball', 3000)
           }, 2500)
           MainParticle?.ListenMouseMove()
         }
