@@ -325,6 +325,7 @@ class ParticleSystem {
   /**
    * 修改模型
    * @param {string} name 模型名字
+   * @param {number?} time 动画时间长度，默认 `1500ms`
    */
   ChangeModel(name: string, time: number = 1500) {
     const item = this.modelList.get(name)
@@ -345,7 +346,7 @@ class ParticleSystem {
           y: targetModel.array[cur * 3 + 1],
           z: targetModel.array[cur * 3 + 2]
         },
-        this.AnimateDuration
+        time
       ).delay(time * Math.random()).onUpdate((o) => {
         sourceModel.setXYZ(i, o.x, o.y, o.z)
         sourceModel.needsUpdate = true
