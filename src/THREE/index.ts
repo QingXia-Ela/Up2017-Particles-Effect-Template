@@ -29,8 +29,6 @@ interface TWEEN_POINT {
   tweenctx?: TweenProps<{ x: number, y: number, z: number }>
 }
 
-const outerParticleAnimeMap = new Map<number, TWEEN_POINT>()
-
 class ParticleSystem {
   private readonly CanvasWrapper: HTMLDivElement
   private readonly modelList: Map<string, THREE_POINT>
@@ -55,7 +53,7 @@ class ParticleSystem {
   private hadListenMouseMove?: boolean
   private MainParticleGroup?: TweenGroup
   private readonly defaultLoader: OBJLoader
-  private readonly ParticleAnimeMap: Map<number, TWEEN_POINT>
+  private readonly ParticleAnimeMap: TWEEN_POINT[]
   /** 模型数组 */
   public Models: ParticleModelProps[]
   /** 额外插件的数组 */
@@ -85,7 +83,7 @@ class ParticleSystem {
     this.onModelsFinishedLoad = onModelsFinishedLoad
     this.defaultLoader = new OBJLoader()
     /** 粒子Map */
-    this.ParticleAnimeMap = new Map<number, TWEEN_POINT>()
+    this.ParticleAnimeMap = []
     /* 宽高 */
     this.HEIGHT = window.innerHeight
     this.WIDTH = window.innerWidth
@@ -312,7 +310,7 @@ class ParticleSystem {
           // @ts-ignore
           o.tweenctx!._valuesStart.z = o.z
         })
-      outerParticleAnimeMap.set(i, p)
+      this.ParticleAnimeMap[i] = p
     }
     const AnimateEffectGeometry = new THREE.BufferGeometry()
     AnimateEffectGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3, false))
@@ -339,7 +337,7 @@ class ParticleSystem {
     const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
     // 停止当前所有动画
     for (let i = 0; i < this.maxParticlesCount; i++) {
-      const p = outerParticleAnimeMap.get(i)?.tweenctx
+      const p = this.ParticleAnimeMap[i]?.tweenctx
       const cur = i % targetModel.count
       p?.stop().to(
         {
