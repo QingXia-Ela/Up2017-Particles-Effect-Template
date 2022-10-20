@@ -285,7 +285,7 @@ class ParticleSystem {
     // 基于最大点构建一个动画载体
     const vertices = []
     const randMaxLength = 1500
-    if (this.MainParticleGroup == null) this.MainParticleGroup = new Tween.Group()
+    this.MainParticleGroup = new Tween.Group()
     for (let i = 0; i < maxParticlesCount; i++) {
       const x = getRangeRandom(-1 * randMaxLength, randMaxLength)
       const y = getRangeRandom(-1 * randMaxLength, randMaxLength)
@@ -338,11 +338,10 @@ class ParticleSystem {
     // !使用断言
     const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
     // 停止当前所有动画
-    this.MainParticleGroup?.removeAll()
     for (let i = 0; i < this.maxParticlesCount; i++) {
       const p = outerParticleAnimeMap.get(i)?.tweenctx
       const cur = i % targetModel.count
-      p?.to(
+      p?.stop().to(
         {
           x: targetModel.array[cur * 3],
           y: targetModel.array[cur * 3 + 1],
