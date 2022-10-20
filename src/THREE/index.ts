@@ -22,6 +22,14 @@ function getRangeRandom(e: number, t: number) {
 }
 
 type THREE_POINT = THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
+interface TWEEN_POINT {
+  x: number,
+  y: number,
+  z: number,
+  tweenctx?: TweenProps<{ x: number, y: number, z: number }>
+}
+
+const outerParticleAnimeMap = new Map<number, TWEEN_POINT>()
 
 class ParticleSystem {
   private readonly CanvasWrapper: HTMLDivElement
@@ -47,7 +55,7 @@ class ParticleSystem {
   private hadListenMouseMove?: boolean
   private MainParticleGroup?: TweenGroup
   private readonly defaultLoader: OBJLoader
-  private readonly ParticleAnimeMap: Map<number, TweenProps<{ x: number, y: number, z: number }>>
+  private readonly ParticleAnimeMap: Map<number, TWEEN_POINT>
   /** 模型数组 */
   public Models: ParticleModelProps[]
   /** 额外插件的数组 */
@@ -77,7 +85,7 @@ class ParticleSystem {
     this.onModelsFinishedLoad = onModelsFinishedLoad
     this.defaultLoader = new OBJLoader()
     /** 粒子Map */
-    this.ParticleAnimeMap = new Map<number, TweenProps<{ x: number, y: number, z: number }>>()
+    this.ParticleAnimeMap = new Map<number, TWEEN_POINT>()
     /* 宽高 */
     this.HEIGHT = window.innerHeight
     this.WIDTH = window.innerWidth
@@ -282,6 +290,14 @@ class ParticleSystem {
       const y = getRangeRandom(-1 * randMaxLength, randMaxLength)
       const z = getRangeRandom(-1 * randMaxLength, randMaxLength)
       vertices.push(x, y, z)
+
+      let p: TWEEN_POINT = {
+        x,
+        y,
+        z,
+      }
+      p.tweenctx = new Tween.Tween(p, this.MainParticleGroup).easing(Tween.Easing.Exponential.In)
+      outerParticleAnimeMap.set(i, p)
     }
     const AnimateEffectGeometry = new THREE.BufferGeometry()
     AnimateEffectGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3, false))
@@ -309,13 +325,9 @@ class ParticleSystem {
     const arr = sourceModel.array
     // 停止当前所有动画
     if (this.MainParticleGroup == null) this.MainParticleGroup = new Tween.Group()
-    const animeMap = this.ParticleAnimeMap
-    this.MainParticleGroup.removeAll()
+    // this.MainParticleGroup.removeAll()
     for (let i = 0; i < this.maxParticlesCount; i++) {
-      if (!animeMap.has(i)) {
-        animeMap.set(i, new Tween.Tween({ x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] }, this.MainParticleGroup))
-      }
-      const tween = animeMap.get(i)
+      const tween = outerParticleAnimeMap.get(i)?.tweenctx
       const cur = i % targetModel.count
       tween?.stop().to(
         {
@@ -324,7 +336,7 @@ class ParticleSystem {
           z: targetModel.array[cur * 3 + 2]
         },
         this.AnimateDuration
-      ).delay(this.AnimateDelayDuration * Math.random()).easing(Tween.Easing.Exponential.In).start().onUpdate((o) => {
+      ).delay(this.AnimateDelayDuration * Math.random()).start().onUpdate((o) => {
         sourceModel.setXYZ(i, o.x, o.y, o.z)
         sourceModel.needsUpdate = true
       })
@@ -334,7 +346,6 @@ class ParticleSystem {
       val.ChangeModel?.call(this)
     })
   }
-
   /**
    * 开始监听鼠标移动的钩子
    *
