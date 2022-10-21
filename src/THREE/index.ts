@@ -20,6 +20,7 @@ function getRangeRandom(e: number, t: number) {
   return Math.random() * (t - e) + e
 }
 
+type customEffectFunc = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera) => EffectComposer
 type THREE_POINT = THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
 interface TWEEN_POINT {
   x: number
@@ -55,6 +56,7 @@ class ParticleSystem {
   private readonly defaultLoader: OBJLoader
   private readonly ParticleAnimeMap: TWEEN_POINT[]
   private readonly isMobile: boolean
+  private readonly customEffectFunc?: customEffectFunc
   /** 模型数组 */
   public Models: ParticleModelProps[]
   /** 额外插件的数组 */
@@ -78,8 +80,10 @@ class ParticleSystem {
     isMobile?: boolean
     /** 自定义相机，如果不传入则使用内置相机 */
     customCamera?: THREE.PerspectiveCamera
+    /** 自定义效果器，你需要返回一个 `EffectComposer` 对象，他会在每帧更新的时候调用 update 方法 */
+    customEffect?: customEffectFunc
   }) {
-    const { AnimateDuration, AnimateDelayDuration, onModelsFinishedLoad, isMobile, customCamera } = options
+    const { AnimateDuration, AnimateDelayDuration, onModelsFinishedLoad, isMobile, customCamera, customEffect } = options
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = (options.addons != null) ? options.addons : []
     this.Models = [...options.Models]
@@ -89,6 +93,7 @@ class ParticleSystem {
     this.defaultLoader = new OBJLoader()
     this.isMobile = typeof isMobile !== 'undefined' ? isMobile : /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
     this.camera = customCamera
+    this.customEffectFunc = customEffect
     /** 粒子Map */
     this.ParticleAnimeMap = []
     /* 宽高 */
@@ -127,7 +132,7 @@ class ParticleSystem {
     // 在场景中添加雾的效果，参数分别代表‘雾的颜色’、‘开始雾化的视线距离’、刚好雾化至看不见的视线距离’
     this.scene.fog = new THREE.FogExp2(328972, 5e-4)
     // 创建相机
-    const fieldOfView = 100
+    const fieldOfView = this.isMobile ? 75 : 100
     const aspectRatio = this.WIDTH / this.HEIGHT
     const nearPlane = 1
     const farPlane = 5e4
@@ -157,9 +162,9 @@ class ParticleSystem {
     // 创建渲染器
     this.renderer = new THREE.WebGLRenderer({
       // 在 css 中设置背景色透明显示渐变色
-      alpha: true
+      alpha: true,
       // 开启抗锯齿
-      // antialias: true,
+      antialias: true
     })
     // 自动清理，解决 bloomPass 效果器冲突
     this.renderer.autoClear = false
@@ -210,19 +215,24 @@ class ParticleSystem {
 
   // 效果器
   private createEffect() {
-    this.composer = new EffectComposer(this.renderer!)
-    const renderPass = new RenderPass(this.scene!, this.camera!)
-    const bloomPass = new BloomPass(0.75)
-    const filmPass = new FilmPass(0.5, 0.5, 1500, 0)
-    const shaderPass = new ShaderPass(FocusShader)
-    shaderPass.uniforms.screenWidth.value = window.innerWidth
-    shaderPass.uniforms.screenHeight.value = window.innerHeight
-    shaderPass.renderToScreen = true
+    if (this.customEffectFunc != null) {
+      this.composer = this.customEffectFunc(this.renderer!, this.scene!, this.camera!)
+    } else {
+      this.composer = new EffectComposer(this.renderer!)
+      const renderPass = new RenderPass(this.scene!, this.camera!)
+      const bloomPass = new BloomPass(0.75)
+      const filmPass = new FilmPass(0.5, 0.5, 1500, 0)
+      const shaderPass = new ShaderPass(FocusShader)
+      shaderPass.uniforms.screenWidth.value = window.innerWidth
+      shaderPass.uniforms.screenHeight.value = window.innerHeight
+      shaderPass.uniforms.sampleDistance.value = 0.8
+      shaderPass.renderToScreen = true
 
-    this.composer.addPass(renderPass)
-    this.composer.addPass(bloomPass)
-    this.composer.addPass(filmPass)
-    this.composer.addPass(shaderPass)
+      this.composer.addPass(renderPass)
+      this.composer.addPass(bloomPass)
+      this.composer.addPass(filmPass)
+      this.composer.addPass(shaderPass)
+    }
   }
 
   // 添加模型
