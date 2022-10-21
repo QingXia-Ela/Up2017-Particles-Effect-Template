@@ -7,7 +7,6 @@ import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass'
 import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { FocusShader } from 'three/examples/jsm/shaders/FocusShader'
-
 import Tween from '@tweenjs/tween.js'
 import type { Tween as TweenProps, Group as TweenGroup } from '@tweenjs/tween.js'
 
@@ -55,6 +54,7 @@ class ParticleSystem {
   private MainParticleGroup?: TweenGroup
   private readonly defaultLoader: OBJLoader
   private readonly ParticleAnimeMap: TWEEN_POINT[]
+  private readonly isMobile: boolean
   /** 模型数组 */
   public Models: ParticleModelProps[]
   /** 额外插件的数组 */
@@ -69,13 +69,17 @@ class ParticleSystem {
   constructor(options: {
     CanvasWrapper: HTMLDivElement
     Models: ParticleModelProps[]
-    /** addons，他应该是一个继承了 `addonsBasic` 类的对象 */
+    /** addons，他是一个继承了 `addonsBasic` 类的对象数组 */
     addons?: any[]
     AnimateDuration?: number
     AnimateDelayDuration?: number
     onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
+    /** 移动端判断，可以手动指定，不指定则通过内置判断 */
+    isMobile?: boolean
+    /** 自定义相机，如果不传入则使用内置相机 */
+    customCamera?: THREE.PerspectiveCamera
   }) {
-    const { AnimateDuration, AnimateDelayDuration, onModelsFinishedLoad } = options
+    const { AnimateDuration, AnimateDelayDuration, onModelsFinishedLoad, isMobile, customCamera } = options
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = (options.addons != null) ? options.addons : []
     this.Models = [...options.Models]
@@ -83,6 +87,8 @@ class ParticleSystem {
     this.AnimateDelayDuration = typeof AnimateDelayDuration === 'number' ? AnimateDelayDuration : 1500
     this.onModelsFinishedLoad = onModelsFinishedLoad
     this.defaultLoader = new OBJLoader()
+    this.isMobile = typeof isMobile !== 'undefined' ? isMobile : /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    this.camera = customCamera
     /** 粒子Map */
     this.ParticleAnimeMap = []
     /* 宽高 */
@@ -126,12 +132,14 @@ class ParticleSystem {
     const nearPlane = 1
     const farPlane = 5e4
 
-    this.camera = new THREE.PerspectiveCamera(
-      fieldOfView,
-      aspectRatio,
-      nearPlane,
-      farPlane
-    )
+    if (this.camera == null) {
+      this.camera = new THREE.PerspectiveCamera(
+        fieldOfView,
+        aspectRatio,
+        nearPlane,
+        farPlane
+      )
+    }
 
     // 设置相机的位置
     this.camera.position.set(0, 0, 1e3)

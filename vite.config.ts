@@ -20,5 +20,9 @@ export default defineConfig({
       "@declare/*": path.resolve(__dirname, './src/declare/'),
       "@THREE/*": path.resolve(__dirname, './src/THREE/'),
     }
+  },
+  server: {
+    host: '0.0.0.0',
+    port: 5173
   }
 })
