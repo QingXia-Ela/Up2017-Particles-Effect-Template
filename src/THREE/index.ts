@@ -43,7 +43,8 @@ class ParticleSystem {
   private readonly orbitControls?: OrbitControls
   private stats?: Stats
   private composer?: EffectComposer
-  private PointMaterial?: THREE.PointsMaterial
+  /** 粒子默认材质 */
+  public PointMaterial?: THREE.PointsMaterial
   /** 表演粒子，即用于呈现模型的粒子载体对象 */
   public AnimateEffectParticle?: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
   private readonly AnimateDuration: number

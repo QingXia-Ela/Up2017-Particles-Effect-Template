@@ -13,7 +13,11 @@ module.exports = {
     parser: 'babel-eslint',
     ecmaVersion: 'latest',
     sourceType: 'module',
-    project: './tsconfig.json'
+    project: './tsconfig.json',
+    ecmaFeatures: {
+      jsx: true,
+      tsx: true
+    }
   },
   plugins: [
     'react'
