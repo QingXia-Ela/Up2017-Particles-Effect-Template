@@ -52,7 +52,6 @@ class ParticleSystem {
   /** 表演粒子，即用于呈现模型的粒子载体对象 */
   public AnimateEffectParticle?: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
   private readonly AnimateDuration: number
-  private readonly AnimateDelayDuration: number
   private mouseV: number
   private mouseK: number
   private hadListenMouseMove?: boolean
@@ -60,7 +59,7 @@ class ParticleSystem {
   private readonly defaultLoader: OBJLoader
   private readonly ParticleAnimeMap: TWEEN_POINT[]
   /** 模型数组 */
-  public Models: ParticleModelProps[]
+  public Models: Map<string, ParticleModelProps>
   /** 额外插件的数组 */
   public addons?: any[]
   // 函数相关
@@ -79,12 +78,14 @@ class ParticleSystem {
     AnimateDelayDuration?: number
     onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
   }) {
-    const { AnimateDuration, AnimateDelayDuration, onModelsFinishedLoad } = options
+    const { AnimateDuration, onModelsFinishedLoad } = options
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = (options.addons != null) ? options.addons : []
-    this.Models = [...options.Models]
+    this.Models = new Map<string, ParticleModelProps>()
+    for (const i of options.Models) {
+      this.Models.set(i.name, i)
+    }
     this.AnimateDuration = typeof AnimateDuration === 'number' ? AnimateDuration : 1500
-    this.AnimateDelayDuration = typeof AnimateDelayDuration === 'number' ? AnimateDelayDuration : 1500
     this.onModelsFinishedLoad = onModelsFinishedLoad
     this.defaultLoader = new OBJLoader()
     /** 粒子Map */
@@ -237,7 +238,7 @@ class ParticleSystem {
       map: TextureLoader.load(g)
     })
     // 读取预置列表
-    for (const i of this.Models) {
+    this.Models.forEach((i) => {
       let finalGeometry: THREE.BufferGeometry
       let finalVertices = new Float32Array([])
 
@@ -249,7 +250,7 @@ class ParticleSystem {
         i.onLoadComplete?.call(this, finalGeometry, FinalPoints)
         this._LOAD_COUNT_++
         // 所有模型加载完后触发播放事件
-        if (this._LOAD_COUNT_ === this.Models.length) this._finishLoadModal()
+        if (this._LOAD_COUNT_ === this.Models.size) this._finishLoadModal()
       }
 
       if (i.loader != null) {
@@ -271,7 +272,7 @@ class ParticleSystem {
           finishLoad()
         })
       }
-    }
+    })
   }
 
   // 完成模型加载
@@ -332,8 +333,9 @@ class ParticleSystem {
    * @param {string} name 模型名字
    * @param {number?} time 动画时间长度，默认 `1500ms`
    */
-  ChangeModel(name: string, time: number = 1500) {
+  ChangeModel(name: string, time: number = this.AnimateDuration) {
     const item = this.modelList.get(name)
+
     if (item == null) {
       console.warn('未找到指定名字的模型，改变操作已终止！传入的名字：' + (name).toString())
       return
