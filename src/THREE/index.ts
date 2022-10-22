@@ -37,12 +37,16 @@ class ParticleSystem {
   private maxParticlesCount: number
   private WIDTH: number
   private HEIGHT: number
-  private scene?: THREE.Scene
-  private camera?: THREE.PerspectiveCamera
-  private renderer?: THREE.WebGLRenderer
   private readonly orbitControls?: OrbitControls
   private stats?: Stats
-  private composer?: EffectComposer
+  /** 主要表演场景对象 */
+  public scene?: THREE.Scene
+  /** 主要相机对象 */
+  public camera?: THREE.PerspectiveCamera
+  /** 渲染器 */
+  public renderer?: THREE.WebGLRenderer
+  /** 效果器 */
+  public composer?: EffectComposer
   /** 粒子默认材质 */
   public PointMaterial?: THREE.PointsMaterial
   /** 表演粒子，即用于呈现模型的粒子载体对象 */
