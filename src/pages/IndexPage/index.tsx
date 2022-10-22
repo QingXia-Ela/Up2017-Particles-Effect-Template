@@ -55,13 +55,15 @@ function IndexPage() {
     }
   })
 
-  const scaleNum = 500
+  const scaleNum = 600
   const Models: ParticleModelProps[] = [
     {
       name: 'cube',
       path: new URL('../../THREE/models/examples/cube.obj', import.meta.url).href,
       onLoadComplete(Geometry, PointGeometry) {
-        Geometry.scale(scaleNum, scaleNum, scaleNum)
+        const s = 400
+        Geometry.scale(s, s, s)
+        Geometry.translate(500, 0, 0)
       }
     },
     {
@@ -69,7 +71,7 @@ function IndexPage() {
       path: new URL('../../THREE/models/examples/ball.obj', import.meta.url).href,
       onLoadComplete(Geometry, PointGeometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
-        Geometry.translate(100, 100, 0)
+        Geometry.translate(-600, 0, -100)
       },
       onEnterStart(PointGeometry) {
         console.log('ball enter start')
@@ -83,6 +85,7 @@ function IndexPage() {
       path: new URL('../../THREE/models/examples/AngularSphere.obj', import.meta.url).href,
       onLoadComplete(Geometry, PointGeometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
+        Geometry.translate(600, 0, -100)
       }
     },
     {
@@ -90,6 +93,7 @@ function IndexPage() {
       path: new URL('../../THREE/models/examples/cone.obj', import.meta.url).href,
       onLoadComplete(Geometry, PointGeometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
+        Geometry.translate(-600, 100, -100)
       }
     }
   ]
@@ -110,7 +114,7 @@ function IndexPage() {
   audioLoader.load(new URL('../../assets/audio/bgm.mp3', import.meta.url).href, function (buffer) {
     sound.setBuffer(buffer)
     sound.setLoop(true)
-    sound.setVolume(0.3)
+    sound.setVolume(0.25)
   })
 
   let hasOperate = false
