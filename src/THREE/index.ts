@@ -67,6 +67,8 @@ class ParticleSystem {
   private readonly onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
   /** 对象内置的更新函数，内部使用 `requestAnimationFrame`，每渲染新的一帧时进行调用 */
   public onRendering?: (t: number) => void
+  public CurrentUseModelName?: string
+  public LastUseModelName?: string
 
   // 新编写的物体添加核心
   constructor(options: {
@@ -301,14 +303,7 @@ class ParticleSystem {
       }
       p.tweenctx = new Tween.Tween(p, this.MainParticleGroup).easing(Tween.Easing.Exponential.In)
         // 处理内部私有变量
-        .onStop((o) => {
-          // @ts-expect-error
-          o.tweenctx!._valuesStart.x = o.x
-          // @ts-expect-error
-          o.tweenctx!._valuesStart.y = o.y
-          // @ts-expect-error
-          o.tweenctx!._valuesStart.z = o.z
-        }).onComplete((o) => {
+        .onComplete((o) => {
           // @ts-expect-error
           o.tweenctx!._valuesStart.x = o.x
           // @ts-expect-error
@@ -340,9 +335,15 @@ class ParticleSystem {
       console.warn('未找到指定名字的模型，改变操作已终止！传入的名字：' + (name).toString())
       return
     }
+    const itemHook = this.Models.get(name)
+    /** 模型切换开始的钩子 */
+    itemHook!.onEnterStart?.call(this, item)
     const targetModel = item.geometry.getAttribute('position')
     // !使用断言
     const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
+    const TimerId = setTimeout(() => {
+      itemHook!.onEnterEnd?.call(this, item)
+    }, time * 2)
     // 停止当前所有动画
     for (let i = 0; i < this.maxParticlesCount; i++) {
       const p = this.ParticleAnimeMap[i]?.tweenctx
@@ -357,6 +358,14 @@ class ParticleSystem {
       ).delay(time * Math.random()).onUpdate((o) => {
         sourceModel.setXYZ(i, o.x, o.y, o.z)
         sourceModel.needsUpdate = true
+      }).onStop((o) => {
+        clearTimeout(TimerId)
+        // @ts-expect-error
+        o.tweenctx!._valuesStart.x = o.x
+        // @ts-expect-error
+        o.tweenctx!._valuesStart.y = o.y
+        // @ts-expect-error
+        o.tweenctx!._valuesStart.z = o.z
       }).start()
     }
     // 触发 addons 的钩子

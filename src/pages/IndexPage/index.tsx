@@ -70,6 +70,12 @@ function IndexPage() {
       onLoadComplete(Geometry, PointGeometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
         Geometry.translate(100, 100, 0)
+      },
+      onEnterStart(PointGeometry) {
+        console.log('ball enter start')
+      },
+      onEnterEnd(PointGeometry) {
+        console.log('ball enter end')
       }
     },
     {
@@ -104,7 +110,7 @@ function IndexPage() {
   audioLoader.load(new URL('../../assets/audio/bgm.mp3', import.meta.url).href, function (buffer) {
     sound.setBuffer(buffer)
     sound.setLoop(true)
-    sound.setVolume(0.5)
+    sound.setVolume(0.3)
   })
 
   let hasOperate = false

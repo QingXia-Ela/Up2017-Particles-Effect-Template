@@ -59,11 +59,11 @@ export interface ParticleModelProps {
    */
   loader?: CustomLoader
   /** 开始进入该模型时触发的回调 */
-  onEnterStart?: (Geometry: THREE.BufferGeometry, PointGeometry: THREE.Points) => void
-  /** 模型切换完成时触发的回调 */
-  onEnterEnd?: (Geometry: THREE.BufferGeometry, PointGeometry: THREE.Points) => void
-  /** 模型切出时触发的回调 */
-  onLeaveStart?: (Geometry: THREE.BufferGeometry, PointGeometry: THREE.Points) => void
-  /** 模型切出完成时触发的回调 */
-  onLeaveEnd?: (Geometry: THREE.BufferGeometry, PointGeometry: THREE.Points) => void
+  onEnterStart?: (PointGeometry: THREE.Points) => void
+  /**
+   * 模型切换完成时触发的回调
+   *
+   * **注意！**只有在模型彻底切换完成后才会触发，中途切换则不会触发该钩子
+   */
+  onEnterEnd?: (PointGeometry: THREE.Points) => void
 }
