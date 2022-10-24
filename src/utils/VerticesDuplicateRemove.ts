@@ -1,4 +1,4 @@
-export function VerticesDuplicateRemove(arr: Float32Array) {
+export default function VerticesDuplicateRemove(arr: Float32Array) {
   const set = new Set<string>(); let t = []
   for (let i = 0; i < arr.length; i++) {
     t.push(arr[i])

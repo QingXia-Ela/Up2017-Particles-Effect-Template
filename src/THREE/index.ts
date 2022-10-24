@@ -16,7 +16,7 @@ import { throttle } from 'lodash'
 
 import g from '@/assets/images/gradient.png'
 import { ParticleModelProps } from '@/declare/THREE'
-import { VerticesDuplicateRemove } from '@/utils/Point.js'
+import VerticesDuplicateRemove from '@/utils/VerticesDuplicateRemove.js'
 
 function getRangeRandom(e: number, t: number) {
   return Math.random() * (t - e) + e
