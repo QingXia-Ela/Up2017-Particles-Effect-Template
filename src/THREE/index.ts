@@ -16,6 +16,7 @@ import { throttle } from 'lodash'
 
 import g from '@/assets/images/gradient.png'
 import { ParticleModelProps } from '@/declare/THREE'
+import { VerticesDuplicateRemove } from '@/utils/Point.js'
 
 function getRangeRandom(e: number, t: number) {
   return Math.random() * (t - e) + e
@@ -268,9 +269,10 @@ class ParticleSystem {
             const arr = j.geometry.attributes.position.array
             finalVertices = new Float32Array([...finalVertices, ...arr])
           }
+
           finalGeometry = new THREE.BufferGeometry()
-          finalGeometry.index = new THREE.BufferAttribute(finalVertices, 9)
-          finalGeometry.setAttribute('position', new THREE.BufferAttribute(finalVertices, 3))
+          // 粒子去重
+          finalGeometry.setAttribute('position', new THREE.BufferAttribute(VerticesDuplicateRemove(finalVertices), 3))
           finishLoad()
         })
       }
