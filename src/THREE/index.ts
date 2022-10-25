@@ -388,10 +388,42 @@ class ParticleSystem {
     }
   }
 
+  /**
+   * 取消监听鼠标移动的钩子
+   */
+  StopListenMouseMove() {
+    if (this.hadListenMouseMove === true) {
+      window.removeEventListener('mousemove', this.rotateScene)
+      this.hadListenMouseMove = false
+    }
+  }
+
+  /**
+   * 场景归中到水平位置
+   *
+   * @param {boolean} immediately 立即归中
+   */
+  AlignCameraCenter(immediately = false) {
+    if (immediately && this.scene != null) {
+      this.scene.rotation.x = 0
+      this.scene.rotation.y = 0
+      this.mouseV = 0
+      this.mouseK = 0
+      return
+    }
+    const e = new MouseEvent('click', {
+      clientX: this.WIDTH / 2,
+      clientY: this.HEIGHT / 2
+    })
+    this.rotateScene(e)
+  }
+
   // 监听鼠标移动旋转场景
   private readonly rotateScene = throttle((e: MouseEvent) => {
-    this.mouseV = 3e-4 * (e.clientX - this.WIDTH / 2)
-    this.mouseK = 1e-4 * (e.clientY - this.HEIGHT / 2)
+    if (this.hadListenMouseMove === true) {
+      this.mouseV = 3e-4 * (e.clientX - this.WIDTH / 2)
+      this.mouseK = 1e-4 * (e.clientY - this.HEIGHT / 2)
+    }
   }, 100)
 
   // 更新场景旋转
