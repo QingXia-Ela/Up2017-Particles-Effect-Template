@@ -256,25 +256,31 @@ class ParticleSystem {
         if (this._LOAD_COUNT_ === this.Models.size) this._finishLoadModal()
       }
 
-      if (i.loader != null) {
-        const { loaderInstance, load } = i.loader
-        loaderInstance.load(i.path, (args) => {
-          finalGeometry = load(args)
-          finishLoad()
-        })
-      } else {
-        this.defaultLoader.load(i.path, (group) => {
-          for (const j of group.children) {
-            // @ts-expect-error 不知道是什么原因导致 ts 判断出错
-            const arr = j.geometry.attributes.position.array
-            finalVertices = new Float32Array([...finalVertices, ...arr])
-          }
+      if (typeof i.path === 'string') {
+        if (i.loader != null) {
+          const { loaderInstance, load } = i.loader
+          loaderInstance.load(i.path, (args) => {
+            finalGeometry = load(args)
+            finishLoad()
+          })
+        } else {
+          this.defaultLoader.load(i.path, (group) => {
+            for (const j of group.children) {
+              // @ts-expect-error 不知道是什么原因导致 ts 判断出错
+              const arr = j.geometry.attributes.position.array
+              finalVertices = new Float32Array([...finalVertices, ...arr])
+            }
+            if (i.NeedRemoveDuplicateParticle === true) finalVertices = VerticesDuplicateRemove(finalVertices)
 
-          finalGeometry = new THREE.BufferGeometry()
-          // 粒子去重
-          finalGeometry.setAttribute('position', new THREE.BufferAttribute(VerticesDuplicateRemove(finalVertices), 3))
-          finishLoad()
-        })
+            finalGeometry = new THREE.BufferGeometry()
+            // 粒子去重
+            finalGeometry.setAttribute('position', new THREE.BufferAttribute(VerticesDuplicateRemove(finalVertices), 3))
+            finishLoad()
+          })
+        }
+      } else if (i.geometry instanceof THREE.BufferGeometry) {
+        finalGeometry = i.geometry
+        finishLoad()
       }
     })
   }

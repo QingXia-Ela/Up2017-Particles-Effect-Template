@@ -27,16 +27,19 @@ export interface ParticleModelProps {
   /** 模型名字，请确保是唯一名字 */
   name: string
   /**
-   * 模型路径，相对当前文件路径引入
+   * 自定义 Geometry，传入后则会取消从指定路径加载的功能
+   *
+   * **通过这种方式设置的几何体不会通过内置的粒子去重方法进行处理**，可以引入 `src/utils` 下的去重方法自行处理
+   */
+  geometry?: THREE.BufferGeometry
+  /**
+   * 模型路径，相对当前文件路径引入，如果传入了自定义 geometry 可以省略
    *
    * 可以查看这篇指南引入：https://vitejs.cn/vite3-cn/guide/assets.html#new-url-url-import-meta-url
    */
-  path: string
+  path?: string
   /** 粒子的材质，不传入则使用内置的默认材质 */
   material?: THREE.PointsMaterial
-  /** 模型加载完成后的回调 */
-  onLoadComplete?: (Geometry: THREE.BufferGeometry, PointGeometry: THREE.Points) => void
-
   /**
    * 自定义加载器
    * @example
@@ -58,6 +61,17 @@ export interface ParticleModelProps {
    * }
    */
   loader?: CustomLoader
+  /**
+   * 是否需要进行粒子去重
+   *
+   * 通过加载器加载的几何体对于每一个面都进行了一次粒子的单独计算，这样会造成大量粒子的位置重叠，增加不必要的性能开销与影响体验，因此该功能会默认开启
+   *
+   * 本质上是对 `BufferGeometry` 内的数组进行粒子位置去重，如果自定义模型展示不正常可以考虑关闭该功能
+   * @default true
+   */
+  NeedRemoveDuplicateParticle?: boolean
+  /** 模型加载完成后的回调 */
+  onLoadComplete?: (Geometry: THREE.BufferGeometry, PointGeometry: THREE.Points) => void
   /** 开始进入该模型时触发的回调 */
   onEnterStart?: (PointGeometry: THREE.Points) => void
   /**

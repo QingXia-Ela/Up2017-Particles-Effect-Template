@@ -59,7 +59,8 @@ function IndexPage() {
   const Models: ParticleModelProps[] = [
     {
       name: 'cube',
-      path: new URL('../../THREE/models/examples/cube.obj', import.meta.url).href,
+      geometry: new THREE.BoxGeometry(1, 1, 1, 1, 5, 5),
+      // path: new URL('../../THREE/models/examples/cube.obj', import.meta.url).href,
       onLoadComplete(Geometry, PointGeometry) {
         const s = 400
         Geometry.scale(s, s, s)
