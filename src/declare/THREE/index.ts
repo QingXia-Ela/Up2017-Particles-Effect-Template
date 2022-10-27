@@ -68,14 +68,23 @@ export interface ParticleModelProps {
    * @default true
    */
   NeedRemoveDuplicateParticle?: boolean
-  /** 模型加载完成后的回调 */
-  onLoadComplete?: (Geometry: THREE.BufferGeometry, PointGeometry: THREE.Points) => void
-  /** 开始进入该模型时触发的回调 */
+  /**
+   * 模型加载完成后的回调
+   *
+   * @param {THREE.BufferGeometry} Geometry 加载完成后的几何体
+   *  */
+  onLoadComplete?: (Geometry: THREE.BufferGeometry) => void
+  /**
+   * 开始进入该模型时触发的回调
+   * @param {THREE.Points} PointGeometry 表演粒子实例
+   *  */
   onEnterStart?: (PointGeometry: THREE.Points) => void
   /**
    * 模型切换完成时触发的回调
    *
    * **注意！**只有在模型彻底切换完成后才会触发，中途切换则不会触发该钩子
+   *
+   * @param {THREE.Points} PointGeometry 表演粒子实例
    */
   onEnterEnd?: (PointGeometry: THREE.Points) => void
 }

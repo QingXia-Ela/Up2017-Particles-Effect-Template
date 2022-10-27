@@ -32,7 +32,7 @@ interface TWEEN_POINT {
 
 class ParticleSystem {
   private readonly CanvasWrapper: HTMLDivElement
-  private readonly modelList: Map<string, THREE_POINT>
+  private readonly modelList: Map<string, THREE.BufferGeometry>
   private _LOAD_COUNT_: number
   private readonly ModelPointer: number
   private maxParticlesCount: number
@@ -247,10 +247,9 @@ class ParticleSystem {
 
       const finishLoad = () => {
         // 材质选择
-        const FinalPoints = new THREE.Points(finalGeometry, this.PointMaterial)
-        this.modelList.set(i.name, FinalPoints)
+        this.modelList.set(i.name, finalGeometry)
         // 回调
-        i.onLoadComplete?.call(this, finalGeometry, FinalPoints)
+        i.onLoadComplete?.call(this, finalGeometry)
         this._LOAD_COUNT_++
         // 所有模型加载完后触发播放事件
         if (this._LOAD_COUNT_ === this.Models.size) this._finishLoadModal()
@@ -292,7 +291,7 @@ class ParticleSystem {
 
     this.modelList.forEach(
       (val) => {
-        maxParticlesCount = Math.max(maxParticlesCount, val.geometry.attributes.position.count)
+        maxParticlesCount = Math.max(maxParticlesCount, val.attributes.position.count)
       })
 
     this.maxParticlesCount = maxParticlesCount
@@ -345,12 +344,12 @@ class ParticleSystem {
     }
     const itemHook = this.Models.get(name)
     /** 模型切换开始的钩子 */
-    itemHook!.onEnterStart?.call(this, item)
-    const targetModel = item.geometry.getAttribute('position')
+    itemHook!.onEnterStart?.call(this, this.AnimateEffectParticle!)
+    const targetModel = item.getAttribute('position')
     // !使用断言
     const sourceModel = this.AnimateEffectParticle!.geometry.getAttribute('position')
     const TimerId = setTimeout(() => {
-      itemHook!.onEnterEnd?.call(this, item)
+      itemHook!.onEnterEnd?.call(this, this.AnimateEffectParticle!)
     }, time * 2)
     // 停止当前所有动画
     for (let i = 0; i < this.maxParticlesCount; i++) {
