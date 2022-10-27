@@ -60,7 +60,7 @@ function IndexPage() {
     {
       name: 'cube',
       path: new URL('../../THREE/models/examples/cube.obj', import.meta.url).href,
-      onLoadComplete(Geometry, PointGeometry) {
+      onLoadComplete(Geometry) {
         const s = 400
         Geometry.scale(s, s, s)
         Geometry.translate(500, 0, 0)
@@ -69,7 +69,7 @@ function IndexPage() {
     {
       name: 'ball',
       path: new URL('../../THREE/models/examples/ball.obj', import.meta.url).href,
-      onLoadComplete(Geometry, PointGeometry) {
+      onLoadComplete(Geometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
         Geometry.translate(-600, 0, -100)
       },
@@ -83,7 +83,7 @@ function IndexPage() {
     {
       name: 'AngularSphere',
       path: new URL('../../THREE/models/examples/AngularSphere.obj', import.meta.url).href,
-      onLoadComplete(Geometry, PointGeometry) {
+      onLoadComplete(Geometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
         Geometry.translate(600, 0, -100)
       }
@@ -91,7 +91,7 @@ function IndexPage() {
     {
       name: 'cone',
       path: new URL('../../THREE/models/examples/cone.obj', import.meta.url).href,
-      onLoadComplete(Geometry, PointGeometry) {
+      onLoadComplete(Geometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
         Geometry.translate(-600, 100, -100)
       }
