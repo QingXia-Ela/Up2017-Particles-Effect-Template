@@ -451,6 +451,10 @@ class ParticleSystem {
     this.stats?.update()
     // 场景旋转检测
     this._updateRotation()
+    // 模型 update 钩子更新
+    this.Models.forEach((val) => {
+      (val.onAnimationFrameUpdate != null) && val.onAnimationFrameUpdate(this.AnimateEffectParticle!)
+    })
     // addons 执行更新
     this.addons?.forEach((val) => {
       val.update()

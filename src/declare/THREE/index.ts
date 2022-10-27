@@ -87,4 +87,8 @@ export interface ParticleModelProps {
    * @param {THREE.Points} PointGeometry 表演粒子实例
    */
   onEnterEnd?: (PointGeometry: THREE.Points) => void
+  /**
+   * 动画帧更新时的回调
+   */
+  onAnimationFrameUpdate?: (PerfromPoint: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>) => void
 }
