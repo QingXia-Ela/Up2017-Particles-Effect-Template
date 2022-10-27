@@ -247,7 +247,7 @@ class ParticleSystem {
 
       const finishLoad = () => {
         // 材质选择
-        const FinalPoints = new THREE.Points(finalGeometry, (i.material != null) ? i.material : this.PointMaterial)
+        const FinalPoints = new THREE.Points(finalGeometry, this.PointMaterial)
         this.modelList.set(i.name, FinalPoints)
         // 回调
         i.onLoadComplete?.call(this, finalGeometry, FinalPoints)

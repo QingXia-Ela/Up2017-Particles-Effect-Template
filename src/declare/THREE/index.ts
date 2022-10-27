@@ -38,8 +38,6 @@ export interface ParticleModelProps {
    * 可以查看这篇指南引入：https://vitejs.cn/vite3-cn/guide/assets.html#new-url-url-import-meta-url
    */
   path?: string
-  /** 粒子的材质，不传入则使用内置的默认材质 */
-  material?: THREE.PointsMaterial
   /**
    * 自定义加载器
    * @example
