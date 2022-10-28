@@ -8,7 +8,19 @@ import { PDBLoader } from 'three/examples/jsm/loaders/PDBLoader'
 import { PRWMLoader } from 'three/examples/jsm/loaders/PRWMLoader'
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader'
 
+import type { Tween as TweenProps } from '@tweenjs/tween.js'
+
 export type ALL_LOADER = OBJLoader | FBXLoader | DRACOLoader | GLTFLoader | MMDLoader | PCDLoader | PDBLoader | PRWMLoader | SVGLoader
+
+export interface TWEEN_POINT {
+  x: number
+  y: number
+  z: number
+  /** tween 实例 */
+  tweenctx?: TweenProps<TWEEN_POINT>
+  /** 粒子是否处于模型切换中的状态 */
+  isPlaying?: boolean
+}
 
 export interface CustomLoader {
   /** 加载器实例 */
@@ -89,6 +101,11 @@ export interface ParticleModelProps {
   onEnterEnd?: (PointGeometry: THREE.Points) => void
   /**
    * 动画帧更新时的回调
+   *
+   * 执行区间：模型开始入场时 -> 切换到其他模型时的第一帧
+   *
+   * @param PerfromPoint 表演粒子实例，即渲染到屏幕上的实例
+   * @param TweenList tween 示例列表
    */
-  onAnimationFrameUpdate?: (PerfromPoint: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>) => void
+  onAnimationFrameUpdate?: (PerfromPoint: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>, TweenList: TWEEN_POINT[]) => void
 }

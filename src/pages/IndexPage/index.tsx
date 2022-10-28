@@ -56,6 +56,7 @@ function IndexPage() {
   })
 
   const scaleNum = 600
+  let Q = 0
   const Models: ParticleModelProps[] = [
     {
       name: 'cube',
@@ -64,6 +65,21 @@ function IndexPage() {
         const s = 400
         Geometry.scale(s, s, s)
         Geometry.translate(500, 0, 0)
+      },
+      onAnimationFrameUpdate(PerfromPoint, TweenList) {
+        // kv 动画
+        const p = PerfromPoint.geometry.getAttribute('position')
+        let a = 0
+        TweenList.forEach((val, i) => {
+          if (val.isPlaying === false) {
+            a = Math.sqrt(Math.pow(val.x, 2) + Math.pow(val.z, 2))
+            p.setY(i, (Math.sin(a / 70 + Q) * a) / 10)
+            // 同步坐标信息，否则会有bug
+            val.y = p.getY(i)
+          }
+        })
+        p.needsUpdate = true
+        Q -= 0.015
       }
     },
     {
@@ -136,7 +152,7 @@ function IndexPage() {
           point.rotation.y = -3.14 * 0.8
           new Tween.Tween(point.rotation).to({ y: 0 }, 10000).easing(Tween.Easing.Quintic.Out).start()
           setTimeout(() => {
-            MainParticle?.ChangeModel('ball', 2000)
+            MainParticle?.ChangeModel('cube', 2000)
           }, 2500)
           MainParticle?.ListenMouseMove()
         }
