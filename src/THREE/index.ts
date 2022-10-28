@@ -316,6 +316,12 @@ class ParticleSystem {
           o.tweenctx!._valuesStart.z = o.z
           o.isPlaying = false
         }).onStart((o) => {
+          // @ts-expect-error
+          o.tweenctx!._valuesStart.x = o.x
+          // @ts-expect-error
+          o.tweenctx!._valuesStart.y = o.y
+          // @ts-expect-error
+          o.tweenctx!._valuesStart.z = o.z
           o.isPlaying = true
         })
       this.ParticleAnimeMap[i] = p
