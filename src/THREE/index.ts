@@ -268,6 +268,7 @@ class ParticleSystem {
             finalGeometry = new THREE.BufferGeometry()
             // 粒子去重
             finalGeometry.setAttribute('position', new THREE.BufferAttribute(VerticesDuplicateRemove(finalVertices), 3))
+            i.geometry = finalGeometry
             finishLoad()
           })
         }
@@ -382,7 +383,6 @@ class ParticleSystem {
         o.tweenctx!._valuesStart.y = o.y
         // @ts-expect-error
         o.tweenctx!._valuesStart.z = o.z
-        o.isPlaying = false
       }).start()
     }
     // 触发 addons 的钩子
@@ -464,7 +464,7 @@ class ParticleSystem {
     // 模型 update 钩子更新
     this.Models.forEach((val) => {
       (val.name === this.CurrentUseModelName && val.onAnimationFrameUpdate != null) &&
-        val.onAnimationFrameUpdate(this.AnimateEffectParticle!, this.ParticleAnimeMap)
+        val.onAnimationFrameUpdate(this.AnimateEffectParticle!, this.ParticleAnimeMap, val.geometry!)
     })
     // addons 执行更新
     this.addons?.forEach((val) => {
