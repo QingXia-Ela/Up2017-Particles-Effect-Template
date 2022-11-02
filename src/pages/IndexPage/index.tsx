@@ -64,7 +64,6 @@ function IndexPage() {
       onLoadComplete(Geometry) {
         const s = 400
         Geometry.scale(s, s, s)
-        Geometry.translate(500, 0, 0)
       },
       onAnimationFrameUpdate(PerfromPoint, TweenList) {
         // kv 动画
@@ -74,8 +73,6 @@ function IndexPage() {
           if (val.isPlaying === false) {
             a = Math.sqrt(Math.pow(val.x, 2) + Math.pow(val.z, 2))
             p.setY(i, (Math.sin(a / 70 + Q) * a) / 10)
-            // 同步坐标信息，否则会有bug
-            val.y = p.getY(i)
           }
         })
         p.needsUpdate = true
@@ -130,7 +127,7 @@ function IndexPage() {
   audioLoader.load(new URL('../../assets/audio/bgm.mp3', import.meta.url).href, function (buffer) {
     sound.setBuffer(buffer)
     sound.setLoop(true)
-    sound.setVolume(0.25)
+    sound.setVolume(0.1)
   })
 
   let hasOperate = false

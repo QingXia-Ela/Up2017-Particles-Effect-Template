@@ -72,6 +72,7 @@ class ParticleSystem {
     Models: ParticleModelProps[]
     /** addons，他应该是一个继承了 `addonsBasic` 类的对象 */
     addons?: any[]
+    /** 粒子动画时间，默认 1500 */
     AnimateDuration?: number
     onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
   }) {
@@ -362,10 +363,14 @@ class ParticleSystem {
     }, time * 2)
     // 停止当前所有动画
     for (let i = 0; i < this.maxParticlesCount; i++) {
-      const p = this.ParticleAnimeMap[i]?.tweenctx
+      const p = this.ParticleAnimeMap[i]
       this.ParticleAnimeMap[i]!.isPlaying = true
       const cur = i % targetModel.count
-      p?.stop().to(
+      // 位置同步，解决 onAnimationFrameUpdate 回调更新时位置错误的问题
+      p.x = sourceModel.getX(cur)
+      p.y = sourceModel.getY(cur)
+      p.z = sourceModel.getZ(cur)
+      p.tweenctx!.stop().to(
         {
           x: targetModel.array[cur * 3],
           y: targetModel.array[cur * 3 + 1],
@@ -377,12 +382,6 @@ class ParticleSystem {
         sourceModel.needsUpdate = true
       }).onStop((o) => {
         clearTimeout(TimerId)
-        // @ts-expect-error
-        o.tweenctx!._valuesStart.x = o.x
-        // @ts-expect-error
-        o.tweenctx!._valuesStart.y = o.y
-        // @ts-expect-error
-        o.tweenctx!._valuesStart.z = o.z
       }).start()
     }
     // 触发 addons 的钩子
