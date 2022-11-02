@@ -212,6 +212,7 @@ class ParticleSystem {
     const shaderPass = new ShaderPass(FocusShader)
     shaderPass.uniforms.screenWidth.value = window.innerWidth
     shaderPass.uniforms.screenHeight.value = window.innerHeight
+    shaderPass.uniforms.sampleDistance.value = 0.4
     shaderPass.renderToScreen = true
 
     this.composer.addPass(renderPass)

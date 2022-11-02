@@ -6,6 +6,7 @@ import AtmosphereParticle from '@/THREE/atmosphere'
 import { ParticleModelProps } from '@/declare/THREE'
 import * as THREE from 'three'
 import Tween from '@tweenjs/tween.js'
+import GetFlatGeometry from '@/utils/GetFlatGeometry'
 
 function IndexPage() {
   const wrapper = useRef<HTMLDivElement | null>(null)
@@ -64,19 +65,6 @@ function IndexPage() {
       onLoadComplete(Geometry) {
         const s = 400
         Geometry.scale(s, s, s)
-      },
-      onAnimationFrameUpdate(PerfromPoint, TweenList) {
-        // kv 动画
-        const p = PerfromPoint.geometry.getAttribute('position')
-        let a = 0
-        TweenList.forEach((val, i) => {
-          if (val.isPlaying === false) {
-            a = Math.sqrt(Math.pow(val.x, 2) + Math.pow(val.z, 2))
-            p.setY(i, (Math.sin(a / 70 + Q) * a) / 10)
-          }
-        })
-        p.needsUpdate = true
-        Q -= 0.015
       }
     },
     {
@@ -94,11 +82,20 @@ function IndexPage() {
       }
     },
     {
-      name: 'AngularSphere',
-      path: new URL('../../THREE/models/examples/AngularSphere.obj', import.meta.url).href,
-      onLoadComplete(Geometry) {
-        Geometry.scale(scaleNum, scaleNum, scaleNum)
-        Geometry.translate(600, 0, -100)
+      name: 'wave',
+      geometry: GetFlatGeometry(),
+      onEnterStart(PointGeometry) {
+        console.log(PointGeometry.geometry.getAttribute('position').count)
+      },
+      onAnimationFrameUpdate(PerfromPoint, TweenList, Geometry) {
+        const p = PerfromPoint.geometry.getAttribute('position')
+        TweenList.forEach((val, i) => {
+          if (val.isPlaying === false) {
+            p.setY(i, Math.sin((i + 1 + Q) * 0.3) * 50 + Math.sin((i + Q) * 0.5) * 50)
+          }
+        })
+        p.needsUpdate = true
+        Q += 0.08
       }
     },
     {
@@ -144,12 +141,11 @@ function IndexPage() {
       MainParticle = new ParticleSystem({
         CanvasWrapper: wrapper.current,
         Models,
-        addons: [Atomsphere1, Atomsphere2, Atomsphere3],
         onModelsFinishedLoad: (point) => {
           point.rotation.y = -3.14 * 0.8
           new Tween.Tween(point.rotation).to({ y: 0 }, 10000).easing(Tween.Easing.Quintic.Out).start()
           setTimeout(() => {
-            MainParticle?.ChangeModel('cube', 2000)
+            MainParticle?.ChangeModel('wave', 2000)
           }, 2500)
           MainParticle?.ListenMouseMove()
         }
