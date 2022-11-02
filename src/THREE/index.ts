@@ -436,10 +436,8 @@ class ParticleSystem {
 
   // 监听鼠标移动旋转场景
   private readonly rotateScene = throttle((e: MouseEvent) => {
-    if (this.hadListenMouseMove === true) {
-      this.mouseV = 3e-4 * (e.clientX - this.WIDTH / 2)
-      this.mouseK = 1e-4 * (e.clientY - this.HEIGHT / 2)
-    }
+    this.mouseV = 3e-4 * (e.clientX - this.WIDTH / 2)
+    this.mouseK = 1e-4 * (e.clientY - this.HEIGHT / 2)
   }, 100)
 
   // 更新场景旋转

@@ -4,7 +4,6 @@ import ParticleSystem from '@/THREE'
 import { useEffect, useRef } from 'react'
 import AtmosphereParticle from '@/THREE/atmosphere'
 import { ParticleModelProps } from '@/declare/THREE'
-import * as THREE from 'three'
 import Tween from '@tweenjs/tween.js'
 import GetFlatGeometry from '@/utils/GetFlatGeometry'
 
@@ -88,7 +87,7 @@ function IndexPage() {
         const p = PerfromPoint.geometry.getAttribute('position')
         TweenList.forEach((val, i) => {
           if (val.isPlaying === false) {
-            p.setY(i, Math.sin((i + 1 + Q) * 0.3) * 50 + Math.sin((i + Q) * 0.5) * 50)
+            p.setY(i, Math.sin((i + 1 + Q) * 0.3) * 50 + Math.sin((i + Q) * 0.5) * 50 - 500)
           }
         })
         Q += 0.08
@@ -111,28 +110,6 @@ function IndexPage() {
     }
   }
 
-  const listener = new THREE.AudioListener()
-
-  // 创建一个全局 audio 源
-  const sound = new THREE.Audio(listener)
-
-  // 加载一个 sound 并将其设置为 Audio 对象的缓冲区
-  const audioLoader = new THREE.AudioLoader()
-  audioLoader.load(new URL('../../assets/audio/bgm.mp3', import.meta.url).href, function (buffer) {
-    sound.setBuffer(buffer)
-    sound.setLoop(true)
-    sound.setVolume(0.1)
-  })
-
-  let hasOperate = false
-
-  window.addEventListener('click', () => {
-    if (!hasOperate) {
-      sound.play()
-      hasOperate = true
-    }
-  })
-
   useEffect(() => {
     if ((MainParticle == null) && wrapper.current != null) {
       MainParticle = new ParticleSystem({
@@ -140,11 +117,6 @@ function IndexPage() {
         Models,
         addons: [Atomsphere1, Atomsphere2, Atomsphere3],
         onModelsFinishedLoad: (point) => {
-          point.rotation.y = -3.14 * 0.8
-          new Tween.Tween(point.rotation).to({ y: 0 }, 10000).easing(Tween.Easing.Quintic.Out).start()
-          setTimeout(() => {
-            MainParticle?.ChangeModel('wave', 2000)
-          }, 2500)
           MainParticle?.ListenMouseMove()
         }
       })
@@ -154,6 +126,21 @@ function IndexPage() {
   return (
     <div className={Styles.index_page}>
       <div className={Styles.canvas_wrapper} ref={wrapper}></div>
+      <ul className={Styles.list}>
+        {
+          Models.map((val) => {
+            return (
+              <li key={val.name} onClick={() => MainParticle?.ChangeModel(val.name)}>{val.name}</li>
+            )
+          })
+        }
+      </ul>
+      <ul className={Styles.function_list}>
+        <li onClick={() => MainParticle?.ListenMouseMove()}>ListenMouseMove</li>
+        <li onClick={() => MainParticle?.StopListenMouseMove()}>StopListenMouseMove</li>
+        <li onClick={() => MainParticle?.AlignCameraCenter()}>AlignCameraCenter</li>
+        <li onClick={() => MainParticle?.AlignCameraCenter(true)}>AlignCameraCenter(immediately)</li>
+      </ul>
     </div>
   )
 }
