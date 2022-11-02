@@ -17,6 +17,7 @@ import { throttle } from 'lodash'
 import g from '@/assets/images/gradient.png'
 import { ParticleModelProps, TWEEN_POINT } from '@/declare/THREE'
 import VerticesDuplicateRemove from '@/utils/VerticesDuplicateRemove.js'
+import BuiltinShaderAttributeName from '@/constant/THREE/BuiltinShaderAttributeName'
 
 function getRangeRandom(e: number, t: number) {
   return Math.random() * (t - e) + e
@@ -368,9 +369,9 @@ class ParticleSystem {
       this.ParticleAnimeMap[i]!.isPlaying = true
       const cur = i % targetModel.count
       // 位置同步，解决 onAnimationFrameUpdate 回调更新时位置错误的问题
-      p.x = sourceModel.getX(cur)
-      p.y = sourceModel.getY(cur)
-      p.z = sourceModel.getZ(cur)
+      p.x = sourceModel.getX(i)
+      p.y = sourceModel.getY(i)
+      p.z = sourceModel.getZ(i)
       p.tweenctx!.stop().to(
         {
           x: targetModel.array[cur * 3],
@@ -463,8 +464,14 @@ class ParticleSystem {
     this._updateRotation()
     // 模型 update 钩子更新
     this.Models.forEach((val) => {
-      (val.name === this.CurrentUseModelName && val.onAnimationFrameUpdate != null) &&
-        val.onAnimationFrameUpdate(this.AnimateEffectParticle!, this.ParticleAnimeMap, val.geometry!)
+      if (val.name === this.CurrentUseModelName && val.onAnimationFrameUpdate != null) {
+        if (val.onAnimationFrameUpdate(this.AnimateEffectParticle!, this.ParticleAnimeMap, val.geometry!) === true) {
+          for (const i of BuiltinShaderAttributeName) {
+            const p = this.AnimateEffectParticle?.geometry?.getAttribute(i)
+            if (p != null) { p.needsUpdate = true }
+          }
+        }
+      }
     })
     // addons 执行更新
     this.addons?.forEach((val) => {

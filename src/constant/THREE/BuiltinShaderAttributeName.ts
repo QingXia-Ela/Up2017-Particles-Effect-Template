@@ -1,0 +1,21 @@
+export default [
+  'position',
+  'normal',
+  'uv',
+  'color',
+  'skinIndex',
+  'skinWeight',
+  'instanceMatri',
+  'morphTarget0',
+  'morphTarget1',
+  'morphTarget2',
+  'morphTarget3',
+  'morphTarget4',
+  'morphTarget5',
+  'morphTarget6',
+  'morphTarget7',
+  'morphNormal0',
+  'morphNormal1',
+  'morphNormal2',
+  'morphNormal3'
+]

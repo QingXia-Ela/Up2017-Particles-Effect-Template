@@ -84,9 +84,6 @@ function IndexPage() {
     {
       name: 'wave',
       geometry: GetFlatGeometry(),
-      onEnterStart(PointGeometry) {
-        console.log(PointGeometry.geometry.getAttribute('position').count)
-      },
       onAnimationFrameUpdate(PerfromPoint, TweenList, Geometry) {
         const p = PerfromPoint.geometry.getAttribute('position')
         TweenList.forEach((val, i) => {
@@ -94,8 +91,8 @@ function IndexPage() {
             p.setY(i, Math.sin((i + 1 + Q) * 0.3) * 50 + Math.sin((i + Q) * 0.5) * 50)
           }
         })
-        p.needsUpdate = true
         Q += 0.08
+        return true
       }
     },
     {
@@ -141,6 +138,7 @@ function IndexPage() {
       MainParticle = new ParticleSystem({
         CanvasWrapper: wrapper.current,
         Models,
+        addons: [Atomsphere1, Atomsphere2, Atomsphere3],
         onModelsFinishedLoad: (point) => {
           point.rotation.y = -3.14 * 0.8
           new Tween.Tween(point.rotation).to({ y: 0 }, 10000).easing(Tween.Easing.Quintic.Out).start()

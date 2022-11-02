@@ -105,8 +105,10 @@ export interface ParticleModelProps {
    * 执行区间：模型开始入场时 -> 切换到其他模型时的第一帧
    *
    * @param PerfromPoint 表演粒子实例，即渲染到屏幕上的实例
-   * @param TweenList tween 示例列表
+   * @param TweenList tween 实例列表
    * @param Geometry 原几何体
+   * @returns 一个 `boolean` 值或不返回任何内容，如果返回 `true` 则会帮你自动更新表演粒子的几何体上的所有 `attribute` 属性，详情见：
+   *  https://threejs.org/docs/index.html#api/zh/core/BufferAttribute.needsUpdate
    */
-  onAnimationFrameUpdate?: (PerfromPoint: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>, TweenList: TWEEN_POINT[], Geometry: THREE.BufferGeometry) => void
+  onAnimationFrameUpdate?: (PerfromPoint: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>, TweenList: TWEEN_POINT[], Geometry: THREE.BufferGeometry) => unknown
 }
