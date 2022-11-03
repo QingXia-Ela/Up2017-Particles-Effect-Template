@@ -267,11 +267,11 @@ class ParticleSystem {
               const arr = j.geometry.attributes.position.array
               finalVertices = new Float32Array([...finalVertices, ...arr])
             }
-            if (i.NeedRemoveDuplicateParticle === true) finalVertices = VerticesDuplicateRemove(finalVertices)
+            if (!(i.NeedRemoveDuplicateParticle === false)) finalVertices = VerticesDuplicateRemove(finalVertices)
 
             finalGeometry = new THREE.BufferGeometry()
             // 粒子去重
-            finalGeometry.setAttribute('position', new THREE.BufferAttribute(VerticesDuplicateRemove(finalVertices), 3))
+            finalGeometry.setAttribute('position', new THREE.BufferAttribute(finalVertices, 3))
             i.geometry = finalGeometry
             finishLoad()
           })
