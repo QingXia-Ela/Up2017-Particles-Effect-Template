@@ -196,5 +196,4 @@ const m = new ParticleSystem({
 2. `ChangeModel()` 模型改变时触发的钩子
 
 ## License
-
-[MIT](https://github.com/QingXia-Ela/Up2017-Particles-Effect-Template/main/LICENSE) License
+[MIT](https://github.com/QingXia-Ela/Up2017-Particles-Effect-Template/blob/main/LICENSE) License
