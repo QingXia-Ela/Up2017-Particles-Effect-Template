@@ -71,10 +71,11 @@ class ParticleSystem {
   constructor(options: {
     CanvasWrapper: HTMLDivElement
     Models: ParticleModelProps[]
-    /** addons，他应该是一个继承了 `addonsBasic` 类的对象 */
+    /** addons，他应该是一个继承了 `addonsBasic` 类的对象，一般用来做氛围粒子 */
     addons?: any[]
     /** 粒子动画时间，默认 1500 */
     AnimateDuration?: number
+    /** 所有模型加载完成的回调 */
     onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
   }) {
     const { AnimateDuration, onModelsFinishedLoad } = options
@@ -417,7 +418,7 @@ class ParticleSystem {
   /**
    * 场景归中到水平位置
    *
-   * @param {boolean} immediately 立即归中
+   * @param immediately 立即归中
    */
   AlignCameraCenter(immediately = false) {
     if (immediately && this.scene != null) {
