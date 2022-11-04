@@ -18,12 +18,24 @@ import g from '@/assets/images/gradient.png'
 import { ParticleModelProps, TWEEN_POINT } from '@/declare/THREE'
 import VerticesDuplicateRemove from '@/utils/VerticesDuplicateRemove.js'
 import BuiltinShaderAttributeName from '@/constant/THREE/BuiltinShaderAttributeName'
+import { addonsBasic } from '@/declare/THREE/addons'
 
 function getRangeRandom(e: number, t: number) {
   return Math.random() * (t - e) + e
 }
 
 type THREE_POINT = THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
+interface addonsItem extends addonsBasic { }
+interface ParticleSystemProps {
+  CanvasWrapper: HTMLDivElement
+  Models: ParticleModelProps[]
+  /** addons，他应该是一个继承了 `addonsBasic` 类的对象，一般用来做氛围粒子 */
+  addons?: addonsItem[]
+  /** 粒子动画时间，默认 1500 */
+  AnimateDuration?: number
+  /** 所有模型加载完成的回调 */
+  onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
+}
 
 class ParticleSystem {
   private readonly CanvasWrapper: HTMLDivElement
@@ -68,16 +80,7 @@ class ParticleSystem {
   public LastUseModelName?: string
 
   // 新编写的物体添加核心
-  constructor(options: {
-    CanvasWrapper: HTMLDivElement
-    Models: ParticleModelProps[]
-    /** addons，他应该是一个继承了 `addonsBasic` 类的对象，一般用来做氛围粒子 */
-    addons?: any[]
-    /** 粒子动画时间，默认 1500 */
-    AnimateDuration?: number
-    /** 所有模型加载完成的回调 */
-    onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
-  }) {
+  constructor(options: ParticleSystemProps) {
     const { AnimateDuration, onModelsFinishedLoad } = options
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = (options.addons != null) ? options.addons : []
