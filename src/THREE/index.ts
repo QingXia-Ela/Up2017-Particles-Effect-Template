@@ -25,7 +25,7 @@ function getRangeRandom(e: number, t: number) {
 }
 
 type THREE_POINT = THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
-interface addonsItem extends addonsBasic { }
+interface addonsItem extends addonsBasic {}
 interface ParticleSystemProps {
   CanvasWrapper: HTMLDivElement
   Models: ParticleModelProps[]
@@ -55,10 +55,13 @@ class ParticleSystem {
   public renderer?: THREE.WebGLRenderer
   /** 效果器 */
   public composer?: EffectComposer
+  /** 加载进度管理器 */
+  public manager?: THREE.LoadingManager
   /** 粒子默认材质 */
   public PointMaterial?: THREE.PointsMaterial
   /** 表演粒子，即用于呈现模型的粒子载体对象 */
   public AnimateEffectParticle?: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
+
   private readonly AnimateDuration: number
   private mouseV: number
   private mouseK: number
@@ -74,6 +77,7 @@ class ParticleSystem {
   // 函数相关
   /** 当所有模型加载完成时进行调用 */
   private readonly onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
+
   /** 对象内置的更新函数，内部使用 `requestAnimationFrame`，每渲染新的一帧时进行调用 */
   public onRendering?: (t: number) => void
   public CurrentUseModelName?: string
@@ -83,14 +87,28 @@ class ParticleSystem {
   constructor(options: ParticleSystemProps) {
     const { AnimateDuration, onModelsFinishedLoad } = options
     this.CanvasWrapper = options.CanvasWrapper
-    this.addons = (options.addons != null) ? options.addons : []
+    this.addons = options.addons != null ? options.addons : []
     this.Models = new Map<string, ParticleModelProps>()
     for (const i of options.Models) {
       this.Models.set(i.name, i)
     }
     this.AnimateDuration = typeof AnimateDuration === 'number' ? AnimateDuration : 1500
     this.onModelsFinishedLoad = onModelsFinishedLoad
-    this.defaultLoader = new OBJLoader()
+    this.manager = new THREE.LoadingManager()
+    this.manager.onStart = function (url, itemsLoaded, itemsTotal) {}
+
+    this.manager.onLoad = function () {
+      console.log('Loading complete!')
+    }
+
+    this.manager.onProgress = function (url, itemsLoaded, itemsTotal) {
+      console.log(`Loading file: ${url} .\nLoaded ${itemsLoaded} of ${itemsTotal} files.`)
+    }
+
+    this.manager.onError = function (url) {
+      console.log('There was an error loading ' + url)
+    }
+    this.defaultLoader = new OBJLoader(this.manager)
     /** 粒子Map */
     this.ParticleAnimeMap = []
     /* 宽高 */
@@ -113,10 +131,7 @@ class ParticleSystem {
     // 效果器
     this.createEffect()
     // 轨道控制插件（鼠标拖拽视角、缩放等）
-    this.orbitControls = new OrbitControls(
-      this.camera!,
-      this.renderer!.domElement
-    )
+    this.orbitControls = new OrbitControls(this.camera!, this.renderer!.domElement)
     this.mouseK = 0
     this.mouseV = 0
     // 循环更新渲染场景
@@ -134,12 +149,7 @@ class ParticleSystem {
     const nearPlane = 1
     const farPlane = 5e4
 
-    this.camera = new THREE.PerspectiveCamera(
-      fieldOfView,
-      aspectRatio,
-      nearPlane,
-      farPlane
-    )
+    this.camera = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane)
 
     // 设置相机的位置
     this.camera.position.set(0, 0, 1e3)
@@ -175,11 +185,7 @@ class ParticleSystem {
     // 在 HTML 创建的容器中添加渲染器的 DOM 元素
     this.CanvasWrapper.appendChild(this.renderer.domElement)
     // 监听屏幕，缩放屏幕更新相机和渲染器的尺寸
-    window.addEventListener(
-      'resize',
-      this.handleWindowResize,
-      false
-    )
+    window.addEventListener('resize', this.handleWindowResize, false)
   }
 
   // 窗口大小变动时调用
@@ -291,10 +297,9 @@ class ParticleSystem {
     // 获得最大的粒子数量
     let maxParticlesCount = 0
 
-    this.modelList.forEach(
-      (val) => {
-        maxParticlesCount = Math.max(maxParticlesCount, val.attributes.position.count)
-      })
+    this.modelList.forEach((val) => {
+      maxParticlesCount = Math.max(maxParticlesCount, val.attributes.position.count)
+    })
 
     this.maxParticlesCount = maxParticlesCount
     // 基于最大点构建一个动画载体
@@ -313,7 +318,8 @@ class ParticleSystem {
         z,
         isPlaying: true
       }
-      p.tweenctx = new Tween.Tween(p, this.MainParticleGroup).easing(Tween.Easing.Exponential.In)
+      p.tweenctx = new Tween.Tween(p, this.MainParticleGroup)
+        .easing(Tween.Easing.Exponential.In)
         // 处理内部私有变量
         .onComplete((o) => {
           // @ts-expect-error
@@ -323,7 +329,8 @@ class ParticleSystem {
           // @ts-expect-error
           o.tweenctx!._valuesStart.z = o.z
           o.isPlaying = false
-        }).onStart((o) => {
+        })
+        .onStart((o) => {
           // @ts-expect-error
           o.tweenctx!._valuesStart.x = o.x
           // @ts-expect-error
@@ -353,7 +360,7 @@ class ParticleSystem {
     const item = this.modelList.get(name)
 
     if (item == null) {
-      console.warn('未找到指定名字的模型，改变操作已终止！传入的名字：' + (name).toString())
+      console.warn('未找到指定名字的模型，改变操作已终止！传入的名字：' + name.toString())
       return
     }
     const itemHook = this.Models.get(name)
@@ -376,19 +383,24 @@ class ParticleSystem {
       p.x = sourceModel.getX(i)
       p.y = sourceModel.getY(i)
       p.z = sourceModel.getZ(i)
-      p.tweenctx!.stop().to(
-        {
-          x: targetModel.array[cur * 3],
-          y: targetModel.array[cur * 3 + 1],
-          z: targetModel.array[cur * 3 + 2]
-        },
-        time
-      ).delay(time * Math.random()).onUpdate((o) => {
-        sourceModel.setXYZ(i, o.x, o.y, o.z)
-        sourceModel.needsUpdate = true
-      }).onStop((o) => {
-        clearTimeout(TimerId)
-      }).start()
+      p.tweenctx!.stop()
+        .to(
+          {
+            x: targetModel.array[cur * 3],
+            y: targetModel.array[cur * 3 + 1],
+            z: targetModel.array[cur * 3 + 2]
+          },
+          time
+        )
+        .delay(time * Math.random())
+        .onUpdate((o) => {
+          sourceModel.setXYZ(i, o.x, o.y, o.z)
+          sourceModel.needsUpdate = true
+        })
+        .onStop((o) => {
+          clearTimeout(TimerId)
+        })
+        .start()
     }
     // 触发 addons 的钩子
     this.addons?.forEach((val) => {
@@ -470,7 +482,9 @@ class ParticleSystem {
         if (val.onAnimationFrameUpdate(this.AnimateEffectParticle!, this.ParticleAnimeMap, val.geometry!) === true) {
           for (const i of BuiltinShaderAttributeName) {
             const p = this.AnimateEffectParticle?.geometry?.getAttribute(i)
-            if (p != null) { p.needsUpdate = true }
+            if (p != null) {
+              p.needsUpdate = true
+            }
           }
         }
       }
