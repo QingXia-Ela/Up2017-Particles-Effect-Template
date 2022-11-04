@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as THREE from 'three'
 import Styles from './index.module.scss'
 import ParticleSystem from '@/THREE'
 import { useEffect, useRef } from 'react'
@@ -7,7 +6,6 @@ import AtmosphereParticle from '@/THREE/atmosphere'
 import { ParticleModelProps } from '@/declare/THREE'
 import Tween from '@tweenjs/tween.js'
 import GetFlatGeometry from '@/utils/GetFlatGeometry'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 function IndexPage() {
   const wrapper = useRef<HTMLDivElement | null>(null)
@@ -71,12 +69,6 @@ function IndexPage() {
     {
       name: 'ball',
       path: new URL('../../THREE/models/examples/ball.obj', import.meta.url).href,
-      loader: {
-        loaderInstance: new GLTFLoader(),
-        load(args) {
-          return new THREE.BufferGeometry()
-        }
-      },
       onLoadComplete(Geometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
         Geometry.translate(-600, 0, -100)
