@@ -104,6 +104,7 @@ m.ChangeModel('111', 2000)
 | addons               |                      | (可选) addons，他应该是一个继承了 `addonsBasic` 类的对象 |
 | AnimateDuration      | number               | (可选) 粒子动画时间，默认 1500                           |
 | onModelsFinishedLoad | Function             | (可选) 所有模型加载完成的回调                            |
+| LoadingManager       | THREE.LoadingManager | (可选) 加载管理器，会被放入默认加载器进行处理            |
 
 详细内容可以查看源码
 
