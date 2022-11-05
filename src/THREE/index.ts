@@ -25,7 +25,7 @@ function getRangeRandom(e: number, t: number) {
 }
 
 type THREE_POINT = THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
-interface addonsItem extends addonsBasic {}
+interface addonsItem extends addonsBasic { }
 interface ParticleSystemProps {
   CanvasWrapper: HTMLDivElement
   Models: ParticleModelProps[]
@@ -35,6 +35,8 @@ interface ParticleSystemProps {
   AnimateDuration?: number
   /** 所有模型加载完成的回调 */
   onModelsFinishedLoad?: (preformPoint: THREE_POINT, scene: THREE.Scene) => void
+  /** 独立加载器，会被送入默认的加载器进行进度处理 */
+  LoadingManager?: THREE.LoadingManager
 }
 
 class ParticleSystem {
@@ -85,7 +87,7 @@ class ParticleSystem {
 
   // 新编写的物体添加核心
   constructor(options: ParticleSystemProps) {
-    const { AnimateDuration, onModelsFinishedLoad } = options
+    const { AnimateDuration, onModelsFinishedLoad, LoadingManager } = options
     this.CanvasWrapper = options.CanvasWrapper
     this.addons = options.addons != null ? options.addons : []
     this.Models = new Map<string, ParticleModelProps>()
@@ -94,20 +96,7 @@ class ParticleSystem {
     }
     this.AnimateDuration = typeof AnimateDuration === 'number' ? AnimateDuration : 1500
     this.onModelsFinishedLoad = onModelsFinishedLoad
-    this.manager = new THREE.LoadingManager()
-    this.manager.onStart = function (url, itemsLoaded, itemsTotal) {}
-
-    this.manager.onLoad = function () {
-      console.log('Loading complete!')
-    }
-
-    this.manager.onProgress = function (url, itemsLoaded, itemsTotal) {
-      console.log(`Loading file: ${url} .\nLoaded ${itemsLoaded} of ${itemsTotal} files.`)
-    }
-
-    this.manager.onError = function (url) {
-      console.log('There was an error loading ' + url)
-    }
+    this.manager = LoadingManager
     this.defaultLoader = new OBJLoader(this.manager)
     /** 粒子Map */
     this.ParticleAnimeMap = []
