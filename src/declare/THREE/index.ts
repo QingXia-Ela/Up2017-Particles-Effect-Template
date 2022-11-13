@@ -28,9 +28,9 @@ export interface CustomLoader {
   /**
    * 完成加载的回调函数
    *
-   * 接受的参数是你指定加载器加载后的结果
+   * 接受的参数是你指定加载器加载后的结果，比如 obj 和 fbx 就是 `Group` 实例，gltf 就是 `GLTF` 实例
    *
-   * 你需要返回一个 `BufferGeometry` 对象，他记录着你的模型的所有顶点信息
+   * 你需要返回一个 `BufferGeometry` 对象，他记录着你想展示的模型的所有顶点信息
    */
   load: (...args: any) => THREE.BufferGeometry
 }

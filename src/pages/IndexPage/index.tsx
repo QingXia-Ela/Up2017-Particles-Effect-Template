@@ -6,6 +6,9 @@ import AtmosphereParticle from '@/THREE/atmosphere'
 import { ParticleModelProps } from '@/declare/THREE'
 import Tween from '@tweenjs/tween.js'
 import GetFlatGeometry from '@/utils/GetFlatGeometry'
+import { BufferGeometry, Float32BufferAttribute } from 'three'
+import VerticesDuplicateRemove from '@/utils/VerticesDuplicateRemove'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 
 function IndexPage() {
   const wrapper = useRef<HTMLDivElement | null>(null)
@@ -60,10 +63,23 @@ function IndexPage() {
   const Models: ParticleModelProps[] = [
     {
       name: 'cube',
-      path: new URL('../../THREE/models/examples/cube.obj', import.meta.url).href,
+      path: new URL('../../THREE/models/examples/cube.fbx', import.meta.url).href,
       onLoadComplete(Geometry) {
         const s = 400
         Geometry.scale(s, s, s)
+      },
+      loader: {
+        loaderInstance: new FBXLoader(),
+        load(group) {
+          const g = new BufferGeometry()
+          console.log(group)
+          let arr = new Float32Array([])
+          for (const i of group.children) {
+            arr = new Float32Array([...arr, ...i.geometry.attributes.position.array])
+          }
+          g.setAttribute('position', new Float32BufferAttribute(VerticesDuplicateRemove(arr), 3))
+          return g
+        }
       }
     },
     {
@@ -99,7 +115,7 @@ function IndexPage() {
       path: new URL('../../THREE/models/examples/cone.obj', import.meta.url).href,
       onLoadComplete(Geometry) {
         Geometry.scale(scaleNum, scaleNum, scaleNum)
-        Geometry.translate(-600, 100, -100)
+        Geometry.translate(600, 100, -100)
       }
     }
   ]
