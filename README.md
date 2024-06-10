@@ -6,6 +6,11 @@
 
 使用 React + Typescript + ThreeJs 制作
 
+
+## 项目解析 + 实现过程
+
+https://blog.shiinafan.top/posts/%E5%9F%BA%E4%BA%8EThreeJs%E5%AE%9E%E7%8E%B0%E7%9A%84%E7%BD%91%E9%A1%B53D%E7%B2%92%E5%AD%90%E6%95%88%E6%9E%9C%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/
+
 ## 使用本项目
 
 ### 克隆到本地
@@ -117,7 +122,7 @@ m.ChangeModel('111', 2000)
 | name   | string | 要切换的模型名字，如果指定名字的模型不存在则会抛出警告 |
 | time   | number | (可选) 动画执行时长，实际表演时长为 `time * 2`         |
 
-`time * 2` 的具体原因可以查看：https://tgideas.qq.com/gicp/news/475/6515254.html?from=list **切换动画 **部分
+`time * 2` 的具体原因可以查看：https://tgideas.qq.com/gicp/news/475/6515254.html?from=list **切换动画** 部分
 
 #### ListenMouseMove
 
